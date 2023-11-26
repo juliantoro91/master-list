@@ -1,0 +1,16 @@
+' By juliantoro91.  More info: https://github.com/juliantoro91
+
+sub Init()
+    m.top.id = "MainScene"
+    m.top.backgroundColor = "0x000000"
+
+    initScreen()
+end sub
+
+sub initScreen()
+    container = m.top.findNode("container")
+
+    m.top.appendChild(container)
+    container.visible = true
+    container.setFocus(true)
+end sub

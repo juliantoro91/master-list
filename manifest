@@ -1,0 +1,16 @@
+title=MasterList
+major_version=0
+minor_version=0
+build_version=00001
+
+mm_icon_focus_hd=pkg:/images/AppManifest/ML_icon_hd.png
+mm_icon_focus_sd=pkg:/images/AppManifest/ML_icon_sd.png
+
+splash_screen_fhd=pkg:/images/AppManifest/ML_splash_fhd.png
+splash_screen_hd=pkg:/images/AppManifest/ML_splash_hd.png
+splash_screen_sd=pkg:/images/AppManifest/ML_splash_sd.png
+
+splash_color=#000000
+splash_min_time=1000
+
+ui_resolutions=fhd

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--********** By juliantoro91.  More info: https://github.com/juliantoro91 **********-->
+
+<component name="MasterList" extends="TargetGroup">
+    <script type="text/brightscript" uri="MasterList.bs" />
+
+    <interface>
+        <field id="settings" type="assocarray" onChange="onSettingsChange" alwaysNotify="true" />
+    </interface>
+
+    <children />
+</component>

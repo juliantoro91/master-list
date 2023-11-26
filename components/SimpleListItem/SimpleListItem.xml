@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--********** By juliantoro91.  More info: https://github.com/juliantoro91 **********-->
+
+<component name="SimpleListItem" extends="Group">
+    <script type="text/brightscript" uri="SimpleListItem.bs" />
+
+    <interface>
+        <field id="itemContent" type="node" onChange="onContentSet" alwaysNotify="true" />
+    </interface>
+
+    <children>
+        <Rectangle
+            id="background"
+            width="120"
+            height="240"
+            color="#164574" >
+            <Label
+                id="label"
+                width="120"
+                height="240"
+                color="#D5D5D5" >
+                <Font
+                    uri="pkg:/fonts/Roboto-Bold.ttf"
+                    size="48"
+                    role="font" />
+            </Label>
+        </Rectangle>
+    </children>
+</component>

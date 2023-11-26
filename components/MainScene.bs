@@ -5,12 +5,37 @@ sub Init()
     m.top.backgroundColor = "0x000000"
 
     initScreen()
+
+    addListToScreen()
 end sub
 
 sub initScreen()
-    container = m.top.findNode("container")
+    m.container = m.top.findNode("container")
 
-    m.top.appendChild(container)
-    container.visible = true
-    container.setFocus(true)
+    m.top.appendChild(m.container)
+    m.container.visible = true
+    m.container.setFocus(true)
 end sub
+
+sub addListToScreen()
+    list = m.container.createChild("MasterList"
+    )
+
+    list.itemComponentName = "SimpleListItem"
+    list.content = generateContent(10)
+
+    list.setFocus(true)
+end sub
+
+function generateContent(qty as integer) as object
+    content = CreateObject("roSGNode", "ContentNode")
+
+    for i=0 to qty
+        itemContent = CreateObject("roSGNode", "ContentNode")
+        itemContent.title = Str(i)
+
+        content.appendChild(itemContent)
+    end for
+
+    return content
+end function

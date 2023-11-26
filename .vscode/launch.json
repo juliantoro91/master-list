@@ -13,6 +13,7 @@
             "rootDir": "${workspaceFolder}/dist",
             "files": [
                 "components/**/*.*",
+                "fonts/**/*.*",
                 "images/**/*.*",
                 "source/**/*.*",
                 "manifest"

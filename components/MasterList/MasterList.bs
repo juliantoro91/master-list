@@ -1,0 +1,144 @@
+' By juliantoro91.  More info: https://github.com/juliantoro91
+
+sub init()
+    initialSetup()
+    setVariables()
+    setObservers()
+end sub
+
+sub initialSetup()
+    m.top.wrap = true
+    m.top.duration = 0.3
+    m.top.showTargetRects = true
+end sub
+
+sub setVariables()
+    m.usePlainStyle = false
+
+    m.targetSetIndex = 0
+    m.contentIndex = 0
+
+    m.changeTargetSet = true
+    m.animateTargetSetChange = true
+    m.moveFocusIndex = true
+
+    m.changeContentIndex = true
+    m.animateContentIndex = true
+end sub
+
+sub setObservers()
+    m.top.observefield("currFocusItemIndex", "onCurrFocusItemIndexChange")
+    m.top.observefield("itemSelected", "onItemSelectedChange")
+    m.top.observefield("itemFocused", "onItemFocusedChange")
+    m.top.observefield("itemUnfocused", "onItemUnfocusedChange")
+    m.top.observefield("content", "onContentChange")
+end sub
+
+sub onContentChange(event as object)
+    content = event.getData()
+    m.numItems = content.getChildCount()
+
+    setupRects()
+    m.top.targetSet = m.sets[m.targetSetIndex]
+end sub
+
+sub setupRects()
+    m.numRects = 8
+    m.sets = generateTargetSets(m.numRects)
+end sub
+
+function generateTargetSets(numRects as integer) as object
+    sets = createObject("roArray", numRects, false)
+
+    for i = 0 to numRects - 1
+        sets[i] = generateTargetSet(numRects, i)
+    end for
+
+    return sets
+end function
+
+function generateTargetSet(numRects as integer, focusIndex as integer) as object
+    set = createObject("roSGNode", "TargetSet")
+    rects = createObject("roArray", numRects, false)
+
+    x = 100
+    y = 100
+    width = 120
+    height = 240
+    spacing = 40
+    yOffset = m.usePlainStyle ? 0 : 5
+    widthOffset = m.usePlainStyle ? 0 : 20
+    heightOffset = m.usePlainStyle ? 0 : 10
+
+    for i = 0 to numRects - 1
+        rects[i] = [
+            x,
+            i = focusIndex ? y + yOffset : y,
+            i = focusIndex ? width + widthOffset : width,
+            i = focusIndex ? height + heightOffset : height
+        ]
+
+        x = x + width + spacing
+    end for
+
+    set.targetRects = rects
+    set.focusIndex = focusIndex
+
+    return set
+end function
+
+function onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    handled = false
+
+    nextTargetSetIndex = 0
+
+    if key = "left" then
+        ? m.contentIndex
+        ? m.numItems
+        nextContentIndex = (m.contentIndex = 0) ? m.numItems - 1 : ((m.contentIndex - 1) mod m.numItems)
+        ? nextContentIndex
+        nextTargetSetIndex = m.targetSetIndex = 0 ? 0 : m.targetSetIndex - 1
+        handled = true
+    else if key = "right"
+        nextContentIndex = (m.contentIndex + 1) mod m.numItems
+        nextTargetSetIndex = m.targetSetIndex >= m.numRects - 1 ? m.numRects - 1 : m.targetSetIndex + 1
+        handled = true
+    end if
+
+    if handled
+        if nextTargetSetIndex <> m.targetSetIndex
+            if m.changeTargetSet
+                m.targetSetIndex = nextTargetSetIndex
+                if m.animateTargetSetChange
+                    m.top.animateToTargetSet = m.sets[m.targetSetIndex]
+                else if m.moveFocusIndex
+                    m.top.targetSet.focusIndex = m.targetSetIndex
+                else
+                    m.top.targetSet = m.sets[m.targetSetIndex]
+                end if
+            end if
+        end if
+
+        if m.changeContentIndex
+            m.contentIndex = nextContentIndex
+            if m.animateContentIndex
+                m.top.animateToItem = m.contentIndex
+            else
+                m.top.jumpToItem = m.contentIndex
+            end if
+        end if
+
+        ?"CONTENT INDEX", m.contentIndex
+        ?"TARGET SET FOCUS INDEX", m.sets[m.targetSetIndex].focusIndex
+    end if
+
+    return handled
+end function
+
+' Interfaces to check
+'' currTargetSet
+'' easeFunction
+'' advancing
+'' reversing

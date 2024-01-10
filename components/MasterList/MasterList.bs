@@ -34,6 +34,9 @@ sub setObservers()
     m.top.observefield("content", "onContentChange")
 end sub
 
+sub onSettingsChange()
+end sub
+
 sub onContentChange(event as object)
     content = event.getData()
     m.numItems = content.getChildCount()
@@ -61,8 +64,8 @@ function generateTargetSet(numRects as integer, focusIndex as integer) as object
     set = createObject("roSGNode", "TargetSet")
     rects = createObject("roArray", numRects, false)
 
-    x = 100
-    y = 100
+    x = 0
+    y = 0
     width = 120
     height = 240
     spacing = 40

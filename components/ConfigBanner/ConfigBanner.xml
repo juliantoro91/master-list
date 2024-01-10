@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--********** By juliantoro91.  More info: https://github.com/juliantoro91 **********-->
+
+<component name="ConfigBanner" extends="Group">
+    <script type="text/brightscript" uri="ConfigBanner.bs" />
+
+    <interface>
+    </interface>
+
+    <children>
+        <Rectangle
+            width="1920"
+            height="1080"
+            color="#b3b3b3"
+            opacity="0.6" />
+    </children>
+</component>

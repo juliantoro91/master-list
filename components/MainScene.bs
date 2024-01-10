@@ -1,6 +1,6 @@
 ' By juliantoro91.  More info: https://github.com/juliantoro91
 
-sub Init()
+sub init()
     m.top.id = "MainScene"
     m.top.backgroundColor = "0x000000"
 
@@ -48,4 +48,28 @@ sub centerList(list as object)
     y = m.container.height - dimensions.height
 
     list.translation = [x/2, y/2]
+end sub
+
+sub onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    result = false
+
+    if key = "options"
+        launchConfigBanner()
+        result = true
+    else if key = "back"
+        configBanner = m.top.findNode("configBanner")
+        if m.top.findNode("configBanner") <> invalid
+            m.top.removeChild(configBanner)
+            m.container.getChild(0).setFocus(true)
+        end if
+    end if
+
+    return true
+end sub
+
+sub launchConfigBanner()
+    configBanner = m.top.createChild("ConfigBanner")
+    configBanner.setFocus(true)
 end sub

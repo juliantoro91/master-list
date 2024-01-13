@@ -18,14 +18,14 @@ sub initScreen()
 end sub
 
 sub addListToScreen()
-    list = m.container.createChild("MasterList")
+    m.list = m.container.createChild("MasterList")
 
-    list.settings = getInitialListConfig()
-    list.content = generateContent(10)
+    m.list.settings = getInitialListConfig()
+    m.list.content = generateContent(10)
 
-    list.setFocus(true)
+    m.list.setFocus(true)
 
-    centerList(list)
+    centerList(m.list)
 end sub
 
 function getInitialListConfig() as object
@@ -71,17 +71,20 @@ sub onKeyEvent(key as string, press as boolean) as boolean
         launchConfigBanner()
         result = true
     else if key = "back"
-        configBanner = m.top.findNode("configBanner")
-        if m.top.findNode("configBanner") <> invalid
-            m.top.removeChild(configBanner)
-            m.container.getChild(0).setFocus(true)
+        if m.configBanner <> invalid
+            m.top.removeChild(m.configBanner)
+            m.list.setFocus(true)
+            m.configBanner = invalid
+            result = true
         end if
     end if
 
-    return true
+    return result
 end sub
 
 sub launchConfigBanner()
-    configBanner = m.top.createChild("ConfigBanner")
-    configBanner.setFocus(true)
+    m.configBanner = m.top.createChild("ConfigBanner")
+    m.configBanner.settings = m.list.settings
+
+    m.configBanner.setFocus(true)
 end sub

@@ -7,9 +7,13 @@ sub init()
 end sub
 
 sub initialSetup()
-    m.top.wrap = true
-    m.top.duration = 0.3
-    m.top.showTargetRects = true
+    initialSettings = {
+        wrap : true
+        duration : 0.3
+        showTargetRects : true
+    }
+
+    m.top.update(initialSettings, true)
 end sub
 
 sub setVariables()
@@ -34,33 +38,43 @@ sub setObservers()
     m.top.observefield("content", "onContentChange")
 end sub
 
-sub onSettingsChange()
+' itemComponentName
+' wrap
+' duration
+' showTargetRects
+' numRects
+sub configureComponent(event as object)
+    settings = event.getData()
+
+    m.top.update(settings, true)
 end sub
 
 sub onContentChange(event as object)
     content = event.getData()
-    m.numItems = content.getChildCount()
+    m.top.update({numItems: content.getChildCount()}, true)
 
     setupRects()
     m.top.targetSet = m.sets[m.targetSetIndex]
 end sub
 
 sub setupRects()
-    m.numRects = 8
-    m.sets = generateTargetSets(m.numRects)
+    m.sets = generateTargetSets()
 end sub
 
-function generateTargetSets(numRects as integer) as object
+function generateTargetSets() as object
+    numRects = m.top.numRects
     sets = createObject("roArray", numRects, false)
 
     for i = 0 to numRects - 1
-        sets[i] = generateTargetSet(numRects, i)
+        sets[i] = generateTargetSet(i)
     end for
 
     return sets
 end function
 
-function generateTargetSet(numRects as integer, focusIndex as integer) as object
+function generateTargetSet(focusIndex as integer) as object
+    numRects = m.top.numRects
+
     set = createObject("roSGNode", "TargetSet")
     rects = createObject("roArray", numRects, false)
 
@@ -98,15 +112,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
     nextTargetSetIndex = 0
 
     if key = "left" then
-        ? m.contentIndex
-        ? m.numItems
-        nextContentIndex = (m.contentIndex = 0) ? m.numItems - 1 : ((m.contentIndex - 1) mod m.numItems)
+        nextContentIndex = (m.contentIndex = 0) ? m.top.numItems - 1 : ((m.contentIndex - 1) mod m.top.numItems)
         ? nextContentIndex
         nextTargetSetIndex = m.targetSetIndex = 0 ? 0 : m.targetSetIndex - 1
         handled = true
     else if key = "right"
-        nextContentIndex = (m.contentIndex + 1) mod m.numItems
-        nextTargetSetIndex = m.targetSetIndex >= m.numRects - 1 ? m.numRects - 1 : m.targetSetIndex + 1
+        nextContentIndex = (m.contentIndex + 1) mod m.top.numItems
+        nextTargetSetIndex = m.targetSetIndex >= m.top.numRects - 1 ? m.top.numRects - 1 : m.targetSetIndex + 1
         handled = true
     end if
 

@@ -20,13 +20,25 @@ end sub
 sub addListToScreen()
     list = m.container.createChild("MasterList")
 
-    list.itemComponentName = "SimpleListItem"
+    list.settings = getInitialListConfig()
     list.content = generateContent(10)
 
     list.setFocus(true)
 
     centerList(list)
 end sub
+
+function getInitialListConfig() as object
+    settings = {
+        itemComponentName : "SimpleListItem"
+        wrap : true
+        duration : 0.3
+        showTargetRects : true
+        numRects : 8
+    }
+
+    return settings
+end function
 
 function generateContent(qty as integer) as object
     content = CreateObject("roSGNode", "ContentNode")

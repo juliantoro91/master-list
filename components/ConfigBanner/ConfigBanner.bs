@@ -4,12 +4,18 @@ sub init()
     m.settings = {}
     m.settingsContainer = m.top.findNode("settingsContainer")
 
+    m.focusController = {
+        focusedItem : 1
+        totalItems : 0
+        minFocusedItem : 1
+    }
+
     m.top.observeField("settings", "configureComponent")
     m.top.observeField("focusedChild", "onFocusChange")
 end sub
 
 sub onFocusChange()
-    if m.top.hasFocus() then m.settingsContainer.getChild(1).setFocus(true)
+    if m.top.hasFocus() then m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
 end sub
 
 sub configureComponent(event as object)
@@ -35,6 +41,9 @@ sub configureComponent(event as object)
     ' showTargetRects
     ' duration
     ' numRects
+    m.numRects = createNumberbox("numRects", m.settings.numRects)
+
+    m.focusController.totalItems = m.settingsContainer.getChildCount() - 1
 end sub
 
 function createCheckbox(attribute as string, defaultValue as boolean) as object
@@ -51,9 +60,24 @@ function createCheckbox(attribute as string, defaultValue as boolean) as object
     m.settingsContainer.appendChild(checkbox)
 end function
 
+function createNumberbox(attribute as string, defaultValue as integer) as object
+    numberbox = CreateObject("roSGNode", "NumberItem")
+
+    numberbox.settings = {
+        key : attribute
+        label : getLabel(attribute)
+        value : defaultValue
+    }
+
+    numberbox.observeField("value", "onConfigItemChange")
+
+    m.settingsContainer.appendChild(numberbox)
+end function
+
 function getLabel(key as string) as string
     labels = {
         "wrap" : "Enable Wrap"
+        "numRects" : "Number of Rects"
     }
 
     return labels[key] ?? ""
@@ -72,6 +96,16 @@ sub onKeyEvent(key as string, press as boolean) as boolean
         m.top.unObserveField("settings")
         m.top.settings = m.settings
         return false
+    else if key = "down"
+        if m.focusController.focusedItem < m.focusController.totalItems
+            m.focusController.focusedItem++
+            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+        end if
+    else if key = "up"
+        if m.focusController.focusedItem > m.focusController.minFocusedItem
+            m.focusController.focusedItem--
+            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+        end if
     end if
 
     return true

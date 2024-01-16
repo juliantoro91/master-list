@@ -6,7 +6,7 @@
     <script type="text/brightscript" uri="ConfigBanner.bs" />
 
     <interface>
-        <field id="settings" type="assocArray" onChange="configureComponent" alwaysNotify="true" />
+        <field id="settings" type="assocArray" />
     </interface>
 
     <children>

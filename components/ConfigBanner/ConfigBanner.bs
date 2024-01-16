@@ -4,6 +4,7 @@ sub init()
     m.settings = {}
     m.settingsContainer = m.top.findNode("settingsContainer")
 
+    m.top.observeField("settings", "configureComponent")
     m.top.observeField("focusedChild", "onFocusChange")
 end sub
 
@@ -67,7 +68,11 @@ end sub
 sub onKeyEvent(key as string, press as boolean) as boolean
     if not press then return false
 
-    if key = "back" then return false
+    if key = "back"
+        m.top.unObserveField("settings")
+        m.top.settings = m.settings
+        return false
+    end if
 
     return true
 end sub

@@ -7,6 +7,8 @@ sub init()
     m.keyboard.keyboardDomain = "numeric"
 
     m.top.observeField("focusedChild", "onFocusChange")
+    m.keyboard.observeField("buttonSelected", "onKeyboardAction")
+    m.keyboard.observeField("wasClosed", "onKeyboardAction")
 end sub
 
 sub onFocusChange()
@@ -42,4 +44,17 @@ sub onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end sub
+
+sub onKeyboardAction(event as object)
+    selectedButton = event.getData()
+
+    if selectedButton = 0
+        m.top.value = m.keyboard.text
+        m.input.text = m.top.value
+    else if selectedButton = 1 or selectedButton = invalid
+        m.keyboard.text = m.top.value
+    end if
+
+    m.keyboard.close = true
 end sub

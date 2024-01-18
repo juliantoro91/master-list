@@ -1,0 +1,112 @@
+sub init()
+    m.top.id = "configBanner"
+
+    m.settings = {}
+    m.settingsContainer = m.top.findNode("settingsContainer")
+
+    m.focusController = {
+        focusedItem : 1
+        totalItems : 0
+        minFocusedItem : 1
+    }
+
+    m.top.observeField("settings", "configureComponent")
+    m.top.observeField("focusedChild", "onFocusChange")
+end sub
+
+sub onFocusChange()
+    if m.top.hasFocus() then m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+end sub
+
+sub configureComponent(event as object)
+    settings = event.getData()
+    m.settings.append(settings)
+
+    m.title = m.settingsContainer.createChild("Label")
+    m.title.width = 460
+    m.title.height = 150
+    m.title.text = "Master List Settings"
+    m.title.color = "#D5D5D5"
+    m.title.wrap = true
+    m.title.numLines = 2
+    m.title.lineSpacing = 0
+
+    font = createObject("roSGNode", "Font")
+    font.uri = "pkg:/fonts/Roboto-Bold.ttf"
+    font.size = 60
+    m.title.font = font
+
+    ' Wrap settings
+    m.wrap = createCheckbox("wrap", m.settings.wrap)
+    ' showTargetRects
+    ' duration
+    ' numRects
+    m.numRects = createNumberbox("numRects", m.settings.numRects)
+
+    m.focusController.totalItems = m.settingsContainer.getChildCount() - 1
+end sub
+
+function createCheckbox(attribute as string, defaultValue as boolean) as object
+    checkbox = CreateObject("roSGNode", "CheckboxItem")
+
+    checkbox.settings = {
+        key : attribute
+        label : getLabel(attribute)
+        value : defaultValue
+    }
+
+    checkbox.observeField("value", "onConfigItemChange")
+
+    m.settingsContainer.appendChild(checkbox)
+end function
+
+function createNumberbox(attribute as string, defaultValue as integer) as object
+    numberbox = CreateObject("roSGNode", "NumberItem")
+
+    numberbox.settings = {
+        key : attribute
+        label : getLabel(attribute)
+        value : defaultValue
+    }
+
+    numberbox.observeField("value", "onConfigItemChange")
+
+    m.settingsContainer.appendChild(numberbox)
+end function
+
+function getLabel(key as string) as string
+    labels = {
+        "wrap" : "Enable Wrap"
+        "numRects" : "Number of Rects"
+    }
+
+    return labels[key] ?? ""
+end function
+
+sub onConfigItemChange(event as object)
+    configItem = event.getRoSGNode()
+
+    m.settings[configItem.key] = configItem.value
+end sub
+
+sub onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    if key = "back"
+        m.top.unObserveField("settings")
+        m.top.settings = m.settings
+        return false
+    else if key = "down"
+        if m.focusController.focusedItem < m.focusController.totalItems
+            m.focusController.focusedItem++
+            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+        end if
+    else if key = "up"
+        if m.focusController.focusedItem > m.focusController.minFocusedItem
+            m.focusController.focusedItem--
+            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+        end if
+    end if
+
+    return true
+end sub

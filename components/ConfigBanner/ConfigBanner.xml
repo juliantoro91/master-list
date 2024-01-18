@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--********** By juliantoro91.  More info: https://github.com/juliantoro91 **********-->
+
+<component name="ConfigBanner" extends="Group">
+    <script type="text/brightscript" uri="ConfigBanner.bs" />
+
+    <interface>
+        <field id="settings" type="assocArray" />
+    </interface>
+
+    <children>
+        <Rectangle
+            width="1920"
+            height="1080"
+            color="#b3b3b3"
+            opacity="0.6" />
+
+        <Rectangle
+            width="580"
+            height="1080"
+            color="#101214"
+            translation="[1340, 0]">
+            <LayoutGroup
+                id="settingsContainer"
+                layoutDirection="vert"
+                horizAlignment="left"
+                translation="[50, 70]"
+                itemSpacings="[40, 35]" />
+        </Rectangle>
+    </children>
+</component>

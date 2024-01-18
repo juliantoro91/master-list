@@ -1,0 +1,60 @@
+sub init()
+    m.label = m.top.findNode("label")
+    m.input = m.top.findNode("input")
+
+    m.keyboard = createObject("roSGNode", "StandardKeyboardDialog")
+    m.keyboard.buttons = ["OK", "Cancel"]
+    m.keyboard.keyboardDomain = "numeric"
+
+    m.top.observeField("focusedChild", "onFocusChange")
+    m.keyboard.observeField("buttonSelected", "onKeyboardAction")
+    m.keyboard.observeField("wasClosed", "onKeyboardAction")
+end sub
+
+sub onFocusChange()
+    if m.top.hasFocus()
+        m.label.text = " > " + m.top.settings.label
+        m.label.font.size = 32
+        m.label.translation = [10, 30]
+    else
+        m.label.text = m.top.settings.label
+        m.label.font.size = 24
+        m.label.translation = [40, 30]
+    end if
+end sub
+
+sub configureComponent(event as object)
+    settings = event.getData()
+
+    m.top.update(settings, true)
+
+    m.label.text = settings.label
+    m.input.text = settings.value
+
+    m.keyboard.title = settings.label
+    m.keyboard.text = settings.value
+end sub
+
+sub onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    if key = "OK"
+        m.top.getScene().dialog = m.keyboard
+        return true
+    end if
+
+    return false
+end sub
+
+sub onKeyboardAction(event as object)
+    selectedButton = event.getData()
+
+    if selectedButton = 0
+        m.top.value = m.keyboard.text
+        m.input.text = m.top.value
+    else if selectedButton = 1 or selectedButton = invalid
+        m.keyboard.text = m.top.value
+    end if
+
+    m.keyboard.close = true
+end sub

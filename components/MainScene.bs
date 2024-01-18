@@ -1,12 +1,12 @@
 ' By juliantoro91.  More info: https://github.com/juliantoro91
 
-sub Init()
+sub init()
     m.top.id = "MainScene"
     m.top.backgroundColor = "0x000000"
 
     initScreen()
 
-    addListToScreen()
+    addListToScreen(getInitialListConfig())
 end sub
 
 sub initScreen()
@@ -17,16 +17,29 @@ sub initScreen()
     m.container.setFocus(true)
 end sub
 
-sub addListToScreen()
-    list = m.container.createChild("MasterList")
+sub addListToScreen(settings as object)
+    m.container.removeChildren(m.container.getChildren(-1, 0))
+    m.list = m.container.createChild("MasterList")
 
-    list.itemComponentName = "SimpleListItem"
-    list.content = generateContent(10)
+    m.list.settings = settings
+    m.list.content = generateContent(10)
 
-    list.setFocus(true)
+    m.list.setFocus(true)
 
-    centerList(list)
+    centerList(m.list)
 end sub
+
+function getInitialListConfig() as object
+    settings = {
+        itemComponentName : "SimpleListItem"
+        wrap : true
+        duration : 0.3
+        showTargetRects : true
+        numRects : 8
+    }
+
+    return settings
+end function
 
 function generateContent(qty as integer) as object
     content = CreateObject("roSGNode", "ContentNode")
@@ -48,4 +61,32 @@ sub centerList(list as object)
     y = m.container.height - dimensions.height
 
     list.translation = [x/2, y/2]
+end sub
+
+sub onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    result = false
+
+    if key = "options"
+        launchConfigBanner()
+        result = true
+    else if key = "back"
+        if m.configBanner <> invalid
+            addListToScreen(m.configBanner.settings)
+            m.top.removeChild(m.configBanner)
+            m.list.setFocus(true)
+            m.configBanner = invalid
+            result = true
+        end if
+    end if
+
+    return result
+end sub
+
+sub launchConfigBanner()
+    m.configBanner = m.top.createChild("ConfigBanner")
+    m.configBanner.settings = m.list.settings
+
+    m.configBanner.setFocus(true)
 end sub

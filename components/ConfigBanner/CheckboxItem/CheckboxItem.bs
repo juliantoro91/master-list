@@ -1,0 +1,39 @@
+sub init()
+    m.label = m.top.findNode("label")
+    m.unselected = m.top.findNode("unselected")
+
+    m.top.observeField("focusedChild", "onFocusChange")
+end sub
+
+sub onFocusChange()
+    if m.top.hasFocus()
+        m.label.text = " > " + m.top.settings.label
+        m.label.font.size = 32
+        m.label.translation = [10, 30]
+    else
+        m.label.text = m.top.settings.label
+        m.label.font.size = 24
+        m.label.translation = [40, 30]
+    end if
+end sub
+
+sub configureComponent(event as object)
+    settings = event.getData()
+
+    m.top.update(settings, true)
+
+    m.label.text = settings.label
+    m.unselected.visible = not settings.value
+end sub
+
+sub onKeyEvent(key as string, press as boolean) as boolean
+    if not press then return false
+
+    if key = "OK"
+        m.top.value = m.unselected.visible
+        m.unselected.visible = not m.top.value
+        return true
+    end if
+
+    return false
+end sub

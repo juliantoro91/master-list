@@ -6,7 +6,7 @@
     <script type="text/brightscript" uri="MasterList.bs" />
 
     <interface>
-        <field id="settings" type="assocarray" onChange="onSettingsChange" alwaysNotify="true" />
+        <field id="settings" type="assocarray" onChange="configureComponent" alwaysNotify="true" />
     </interface>
 
     <children />

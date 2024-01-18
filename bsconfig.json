@@ -1,0 +1,22 @@
+{
+    "rootDir": ".",
+    "stagingDir": "dist",
+    "retainStagingDir": true,
+    "createPackage": true,
+    "sourceMap": true,
+    "allowBrighterScriptInBrightScript": true,
+    "diagnosticFilters": [
+        {
+            "src": "**/*",
+            //"codes": [1001, 1002, 1067, 1128]
+            "codes": []
+        }
+    ],
+    "files": [
+        "components/**/*.*",
+        "fonts/**/*.*",
+        "images/**/*.*",
+        "source/**/*.*",
+        "manifest"
+    ]
+}

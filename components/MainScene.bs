@@ -1,0 +1,51 @@
+' By juliantoro91.  More info: https://github.com/juliantoro91
+
+sub Init()
+    m.top.id = "MainScene"
+    m.top.backgroundColor = "0x000000"
+
+    initScreen()
+
+    addListToScreen()
+end sub
+
+sub initScreen()
+    m.container = m.top.findNode("container")
+
+    m.top.appendChild(m.container)
+    m.container.visible = true
+    m.container.setFocus(true)
+end sub
+
+sub addListToScreen()
+    list = m.container.createChild("MasterList")
+
+    list.itemComponentName = "SimpleListItem"
+    list.content = generateContent(10)
+
+    list.setFocus(true)
+
+    centerList(list)
+end sub
+
+function generateContent(qty as integer) as object
+    content = CreateObject("roSGNode", "ContentNode")
+
+    for i=1 to qty
+        itemContent = CreateObject("roSGNode", "ContentNode")
+        itemContent.title = Str(i)
+
+        content.appendChild(itemContent)
+    end for
+
+    return content
+end function
+
+sub centerList(list as object)
+    dimensions = list.boundingRect()
+
+    x = m.container.width - dimensions.width
+    y = m.container.height - dimensions.height
+
+    list.translation = [x/2, y/2]
+end sub

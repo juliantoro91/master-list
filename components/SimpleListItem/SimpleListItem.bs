@@ -8,3 +8,9 @@ sub onContentSet(event as object)
 
     m.label.text = content.title
 end sub
+
+sub onItemHasFocus(event as object)
+    hasFocus = event.getData()
+
+    m.background.color = hasFocus ? "#2AA55B" : "#164574"
+end sub

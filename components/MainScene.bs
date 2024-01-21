@@ -35,7 +35,10 @@ function getInitialListConfig() as object
         wrap : true
         duration : 0.3
         showTargetRects : true
+        usePlainStyle : true
         numRects : 8
+        minFocused : 2
+        maxFocused : 5
     }
 
     return settings

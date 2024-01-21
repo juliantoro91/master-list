@@ -12,10 +12,14 @@ sub initialSetup()
         duration : 0.3
         showTargetRects : true
         usePlainStyle : false
-        minFocused : 0
-        maxFocused : 0
         fixedFocus : false
         enableAnimation : true
+        numRects : 0
+        minFocused : 0
+        maxFocused : 0
+        cardWidth : 0
+        cardHeight : 0
+        cardSpacing : 0
     }
 
     m.top.update(initialSettings, true)
@@ -56,6 +60,13 @@ sub configureComponent(event as object)
 
     setupRects()
     m.top.targetSet = m.sets[m.indexes.targetSet]
+
+    ' Apply clipping rect to discard flashing cards
+    x = 0
+    y = 0
+    width = (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
+    height = m.top.cardHeight
+    m.top.clippingRect = [x, y, width, height]
 end sub
 
 sub onContentChange(event as object)
@@ -69,6 +80,10 @@ sub setupRects()
 end sub
 
 function generateTargetSets() as object
+    ' Adjustment required for the presence of flashing cards
+    m.top.minFocused++
+    m.top.maxFocused++
+
     ' Control variables
     numRects = m.top.numRects
     minFocused = m.top.minFocused
@@ -90,16 +105,16 @@ function generateTargetSets() as object
 end function
 
 function generateTargetSet(focusIndex as integer) as object
-    numRects = m.top.numRects
+    numRects = m.top.numRects + 2 ' This value is added to avoid flashing cards
 
     set = createObject("roSGNode", "TargetSet")
     rects = createObject("roArray", numRects, false)
 
-    x = 0
+    x = -(m.top.cardWidth + m.top.cardSpacing)
     y = 0
-    width = 120
-    height = 240
-    spacing = 40
+    width = m.top.cardWidth
+    height = m.top.cardHeight
+    spacing = m.top.cardSpacing
     yOffset = m.top.usePlainStyle ? 0 : 5
     widthOffset = m.top.usePlainStyle ? 0 : 20
     heightOffset = m.top.usePlainStyle ? 0 : 10
@@ -172,3 +187,17 @@ end function
 '' easeFunction
 '' advancing
 '' reversing
+
+' GETTERS
+function get(key as string) as dynamic
+    getters = {
+        top : m.top
+        dimensions : function () as object
+            return m.top.clippingRect
+        end function
+    }
+
+    value = getters[key]
+
+    return type(value) = "roFunction" ? value() : value
+end function

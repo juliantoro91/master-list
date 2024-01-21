@@ -39,6 +39,9 @@ function getInitialListConfig() as object
         numRects : 8
         minFocused : 2
         maxFocused : 5
+        cardWidth : 120
+        cardHeight : 240
+        cardSpacing : 40
     }
 
     return settings
@@ -58,7 +61,7 @@ function generateContent(qty as integer) as object
 end function
 
 sub centerList(list as object)
-    dimensions = list.boundingRect()
+    dimensions = list@.get("dimensions")
 
     x = m.container.width - dimensions.width
     y = m.container.height - dimensions.height

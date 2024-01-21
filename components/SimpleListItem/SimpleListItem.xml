@@ -7,6 +7,7 @@
 
     <interface>
         <field id="itemContent" type="node" onChange="onContentSet" alwaysNotify="true" />
+        <field id="itemHasFocus" type="boolean" onChange="onItemHasFocus" />
     </interface>
 
     <children>

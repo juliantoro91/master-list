@@ -11,23 +11,33 @@ sub initialSetup()
         wrap : true
         duration : 0.3
         showTargetRects : true
+        usePlainStyle : false
+        fixedFocus : false
+        enableAnimation : true
+        numRects : 0
+        minFocused : 0
+        maxFocused : 0
+        cardWidth : 0
+        cardHeight : 0
+        cardSpacing : 0
     }
 
     m.top.update(initialSettings, true)
 end sub
 
 sub setVariables()
-    m.usePlainStyle = false
+    m.indexes = {
+        targetSet : 0
+        maxTargetSet: 0
+        content : 0
+        maxContent : 0
+    }
 
-    m.targetSetIndex = 0
-    m.contentIndex = 0
+    m.changeTargetSet = true ' Check if it's required
+    m.animateTargetSetChange = true ' Check behavior and move to initial settings
+    m.moveFocusIndex = true ' Check behavior and move to initial settings
 
-    m.changeTargetSet = true
-    m.animateTargetSetChange = true
-    m.moveFocusIndex = true
-
-    m.changeContentIndex = true
-    m.animateContentIndex = true
+    m.changeContentIndex = true ' Check if it's required
 end sub
 
 sub setObservers()
@@ -47,14 +57,22 @@ sub configureComponent(event as object)
     settings = event.getData()
 
     m.top.update(settings, true)
+
+    setupRects()
+    m.top.targetSet = m.sets[m.indexes.targetSet]
+
+    ' Apply clipping rect to discard flashing cards
+    x = 0
+    y = 0
+    width = (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
+    height = m.top.cardHeight
+    m.top.clippingRect = [x, y, width, height]
 end sub
 
 sub onContentChange(event as object)
     content = event.getData()
-    m.top.update({numItems: content.getChildCount()}, true)
 
-    setupRects()
-    m.top.targetSet = m.sets[m.targetSetIndex]
+    m.indexes.maxContent = content.getChildCount() - 1
 end sub
 
 sub setupRects()
@@ -62,30 +80,44 @@ sub setupRects()
 end sub
 
 function generateTargetSets() as object
-    numRects = m.top.numRects
-    sets = createObject("roArray", numRects, false)
+    ' Adjustment required for the presence of flashing cards
+    m.top.minFocused++
+    m.top.maxFocused++
 
-    for i = 0 to numRects - 1
-        sets[i] = generateTargetSet(i)
+    ' Control variables
+    numRects = m.top.numRects
+    minFocused = m.top.minFocused
+    maxFocused = (m.top.maxFocused > m.top.minFocused) ? m.top.maxFocused : numRects - 1
+    maxFocused = m.top.fixedFocus ? m.top.minFocused : maxFocused
+
+    ' Configure sets
+    sets = createObject("roArray", (maxFocused - minFocused) + 1, false) ' TODO: Check if it's practical to block resizing
+
+    setIndex = 0
+    for i = minFocused to maxFocused
+        sets[setIndex] = generateTargetSet(i)
+        setIndex++
     end for
+
+    m.indexes.maxTargetSet = sets.count() - 1
 
     return sets
 end function
 
 function generateTargetSet(focusIndex as integer) as object
-    numRects = m.top.numRects
+    numRects = m.top.numRects + 2 ' This value is added to avoid flashing cards
 
     set = createObject("roSGNode", "TargetSet")
     rects = createObject("roArray", numRects, false)
 
-    x = 0
+    x = -(m.top.cardWidth + m.top.cardSpacing)
     y = 0
-    width = 120
-    height = 240
-    spacing = 40
-    yOffset = m.usePlainStyle ? 0 : 5
-    widthOffset = m.usePlainStyle ? 0 : 20
-    heightOffset = m.usePlainStyle ? 0 : 10
+    width = m.top.cardWidth
+    height = m.top.cardHeight
+    spacing = m.top.cardSpacing
+    yOffset = m.top.usePlainStyle ? 0 : 5
+    widthOffset = m.top.usePlainStyle ? 0 : 20
+    heightOffset = m.top.usePlainStyle ? 0 : 10
 
     for i = 0 to numRects - 1
         rects[i] = [
@@ -107,49 +139,47 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
     if not press then return false
 
-    handled = false
+    result = false
+    wrap = m.top.wrap
+    avoidAnimation = false
 
-    nextTargetSetIndex = 0
-
-    if key = "left" then
-        nextContentIndex = (m.contentIndex = 0) ? m.top.numItems - 1 : ((m.contentIndex - 1) mod m.top.numItems)
-        ? nextContentIndex
-        nextTargetSetIndex = m.targetSetIndex = 0 ? 0 : m.targetSetIndex - 1
-        handled = true
+    if key = "left"
+        avoidAnimation = (m.indexes.content = 0 and wrap) ? true : false
+        nextContentIndex = (m.indexes.content > 0) ? m.indexes.content - 1 : (wrap ? m.indexes.maxContent : 0)
+        nextTargetSetIndex = (m.indexes.targetSet > 0) ? m.indexes.targetSet - 1 : 0
+        result = true
     else if key = "right"
-        nextContentIndex = (m.contentIndex + 1) mod m.top.numItems
-        nextTargetSetIndex = m.targetSetIndex >= m.top.numRects - 1 ? m.top.numRects - 1 : m.targetSetIndex + 1
-        handled = true
+        avoidAnimation = (m.indexes.content = m.indexes.maxContent and wrap) ? true : false
+        nextContentIndex = (m.indexes.content < m.indexes.maxContent) ? m.indexes.content + 1 : (wrap ? 0 : m.indexes.maxContent)
+        nextTargetSetIndex = (m.indexes.targetSet < m.indexes.maxTargetSet) ? m.indexes.targetSet + 1 : m.indexes.maxTargetSet
+        result = true
     end if
 
-    if handled
-        if nextTargetSetIndex <> m.targetSetIndex
+    if result
+        if nextTargetSetIndex <> m.indexes.targetSet
             if m.changeTargetSet
-                m.targetSetIndex = nextTargetSetIndex
+                m.indexes.targetSet = nextTargetSetIndex
                 if m.animateTargetSetChange
-                    m.top.animateToTargetSet = m.sets[m.targetSetIndex]
+                    m.top.animateToTargetSet = m.sets[m.indexes.targetSet]
                 else if m.moveFocusIndex
-                    m.top.targetSet.focusIndex = m.targetSetIndex
+                    m.top.targetSet.focusIndex = m.indexes.targetSet
                 else
-                    m.top.targetSet = m.sets[m.targetSetIndex]
+                    m.top.targetSet = m.sets[m.indexes.targetSet]
                 end if
             end if
         end if
 
         if m.changeContentIndex
-            m.contentIndex = nextContentIndex
-            if m.animateContentIndex
-                m.top.animateToItem = m.contentIndex
+            m.indexes.content = nextContentIndex
+            if m.top.enableAnimation and not avoidAnimation
+                m.top.animateToItem = m.indexes.content
             else
-                m.top.jumpToItem = m.contentIndex
+                m.top.jumpToItem = m.indexes.content
             end if
         end if
-
-        ?"CONTENT INDEX", m.contentIndex
-        ?"TARGET SET FOCUS INDEX", m.sets[m.targetSetIndex].focusIndex
     end if
 
-    return handled
+    return result
 end function
 
 ' Interfaces to check
@@ -157,3 +187,17 @@ end function
 '' easeFunction
 '' advancing
 '' reversing
+
+' GETTERS
+function get(key as string) as dynamic
+    getters = {
+        top : m.top
+        dimensions : function () as object
+            return m.top.clippingRect
+        end function
+    }
+
+    value = getters[key]
+
+    return type(value) = "roFunction" ? value() : value
+end function

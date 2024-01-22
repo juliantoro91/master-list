@@ -38,12 +38,6 @@ sub setVariables()
         press : false
         key : ""
     }
-
-    m.changeTargetSet = true ' Check if it's required
-    m.animateTargetSetChange = true ' Check behavior and move to initial settings
-    m.moveFocusIndex = true ' Check behavior and move to initial settings
-
-    m.changeContentIndex = true ' Check if it's required
 end sub
 
 sub setObservers()
@@ -149,17 +143,20 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if not press
         m.top.advancing = false
         m.top.reversing = false
+        return false
     end if
     if m.navigation.active = true then return true
 
     result = false
 
     if key = "left"
+        m.top.advancing = false
         m.top.reversing = true
         moveBackguard()
         result = true
     else if key = "right"
         m.top.advancing = true
+        m.top.reversing = false
         moveForward()
         result = true
     end if
@@ -183,19 +180,15 @@ end sub
 
 sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer)
     if nextTargetSetIndex <> m.indexes.targetSet
-        if m.changeTargetSet
-            m.indexes.targetSet = nextTargetSetIndex
-            if m.animateTargetSetChange
-                m.top.animateToTargetSet = m.sets[m.indexes.targetSet]
-            else if m.moveFocusIndex
-                m.top.targetSet.focusIndex = m.indexes.targetSet
-            else
-                m.top.targetSet = m.sets[m.indexes.targetSet]
-            end if
+        m.indexes.targetSet = nextTargetSetIndex
+        if m.top.enableAnimation
+            m.top.animateToTargetSet = m.sets[m.indexes.targetSet]
+        else
+            m.top.targetSet = m.sets[m.indexes.targetSet]
         end if
     end if
 
-    if m.changeContentIndex
+    if nextContentIndex <> m.indexes.content
         m.indexes.content = nextContentIndex
         if m.top.enableAnimation
             m.top.animateToItem = m.indexes.content
@@ -208,7 +201,7 @@ end sub
 sub onCurrFocusItemIndexChange(event as object)
     data = event.getData()
 
-    if data - int(data) = 0 and m.navigation.press = true
+    if data - int(data) = 0 and m.navigation.press = true and m.top.enableAnimation
         if m.navigation.key = "left"
             moveBackguard()
         else if m.navigation.key = "right"

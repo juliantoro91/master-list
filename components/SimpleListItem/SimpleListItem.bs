@@ -12,5 +12,12 @@ end sub
 sub onItemHasFocus(event as object)
     hasFocus = event.getData()
 
-    m.background.color = hasFocus ? "#2AA55B" : "#164574"
+    ' Disabled because of a misbehave
+    ' m.background.color = hasFocus ? "#2AA55B" : "#164574"
+end sub
+
+sub onFocusPercentChange(event as object)
+    focusPercent = event.getData()
+
+    m.background.color = int(focusPercent) = 1 ? "#2AA55B" : "#164574"
 end sub

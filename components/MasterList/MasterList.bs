@@ -33,6 +33,12 @@ sub setVariables()
         maxContent : 0
     }
 
+    m.navigation = {
+        active : false
+        press : false
+        key : ""
+    }
+
     m.changeTargetSet = true ' Check if it's required
     m.animateTargetSetChange = true ' Check behavior and move to initial settings
     m.moveFocusIndex = true ' Check behavior and move to initial settings
@@ -137,50 +143,85 @@ function generateTargetSet(focusIndex as integer) as object
 end function
 
 function onKeyEvent(key as string, press as boolean) as boolean
+    m.navigation.press = press
+    m.navigation.key = key
+
     if not press then return false
+    if m.navigation.active = true then return true
 
     result = false
-    wrap = m.top.wrap
-    avoidAnimation = false
 
     if key = "left"
-        avoidAnimation = (m.indexes.content = 0 and wrap) ? true : false
-        nextContentIndex = (m.indexes.content > 0) ? m.indexes.content - 1 : (wrap ? m.indexes.maxContent : 0)
-        nextTargetSetIndex = (m.indexes.targetSet > 0) ? m.indexes.targetSet - 1 : 0
+        moveBackguard()
         result = true
     else if key = "right"
-        avoidAnimation = (m.indexes.content = m.indexes.maxContent and wrap) ? true : false
-        nextContentIndex = (m.indexes.content < m.indexes.maxContent) ? m.indexes.content + 1 : (wrap ? 0 : m.indexes.maxContent)
-        nextTargetSetIndex = (m.indexes.targetSet < m.indexes.maxTargetSet) ? m.indexes.targetSet + 1 : m.indexes.maxTargetSet
+        moveForward()
         result = true
-    end if
-
-    if result
-        if nextTargetSetIndex <> m.indexes.targetSet
-            if m.changeTargetSet
-                m.indexes.targetSet = nextTargetSetIndex
-                if m.animateTargetSetChange
-                    m.top.animateToTargetSet = m.sets[m.indexes.targetSet]
-                else if m.moveFocusIndex
-                    m.top.targetSet.focusIndex = m.indexes.targetSet
-                else
-                    m.top.targetSet = m.sets[m.indexes.targetSet]
-                end if
-            end if
-        end if
-
-        if m.changeContentIndex
-            m.indexes.content = nextContentIndex
-            if m.top.enableAnimation and not avoidAnimation
-                m.top.animateToItem = m.indexes.content
-            else
-                m.top.jumpToItem = m.indexes.content
-            end if
-        end if
     end if
 
     return result
 end function
+
+sub moveBackguard()
+    avoidAnimation = (m.indexes.content = 0 and m.top.wrap) ? true : false
+    nextContentIndex = (m.indexes.content > 0) ? m.indexes.content - 1 : (m.top.wrap ? m.indexes.maxContent : 0)
+    nextTargetSetIndex = (m.indexes.targetSet > 0) ? m.indexes.targetSet - 1 : 0
+
+    navigateAction(nextContentIndex, nextTargetSetIndex, avoidAnimation)
+end sub
+
+sub moveForward()
+    avoidAnimation = (m.indexes.content = m.indexes.maxContent and m.top.wrap) ? true : false
+    nextContentIndex = (m.indexes.content < m.indexes.maxContent) ? m.indexes.content + 1 : (m.top.wrap ? 0 : m.indexes.maxContent)
+    nextTargetSetIndex = (m.indexes.targetSet < m.indexes.maxTargetSet) ? m.indexes.targetSet + 1 : m.indexes.maxTargetSet
+
+    navigateAction(nextContentIndex, nextTargetSetIndex, avoidAnimation)
+end sub
+
+sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer, avoidAnimation=false as boolean)
+    if nextTargetSetIndex <> m.indexes.targetSet
+        if m.changeTargetSet
+            m.indexes.targetSet = nextTargetSetIndex
+            if m.animateTargetSetChange
+                m.top.animateToTargetSet = m.sets[m.indexes.targetSet]
+            else if m.moveFocusIndex
+                m.top.targetSet.focusIndex = m.indexes.targetSet
+            else
+                m.top.targetSet = m.sets[m.indexes.targetSet]
+            end if
+        end if
+    end if
+
+    if m.changeContentIndex
+        m.indexes.content = nextContentIndex
+        if m.top.enableAnimation and not avoidAnimation
+            m.top.animateToItem = m.indexes.content
+        else
+            m.top.jumpToItem = m.indexes.content
+        end if
+    end if
+end sub
+
+sub onCurrFocusItemIndexChange(event as object)
+    data = event.getData()
+
+    if data - int(data) = 0 and m.navigation.press = true
+        if m.navigation.key = "left"
+            moveBackguard()
+        else if m.navigation.key = "right"
+            moveForward()
+        end if
+    end if
+end sub
+
+sub onItemFocusedChange()
+    m.navigation.active = false
+end sub
+
+sub onItemUnfocusedChange()
+    m.navigation.active = true
+end sub
+
 
 ' Interfaces to check
 '' currTargetSet

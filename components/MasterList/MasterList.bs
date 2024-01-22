@@ -20,6 +20,9 @@ sub initialSetup()
         cardWidth : 0
         cardHeight : 0
         cardSpacing : 0
+        verticalList : false
+        advanceKey : "right"
+        reverseKey : "left"
     }
 
     m.top.update(initialSettings, true)
@@ -58,14 +61,22 @@ sub configureComponent(event as object)
 
     m.top.update(settings, true)
 
+    if m.top.verticalList
+        m.top.advanceKey = "down"
+        m.top.reverseKey = "up"
+    else
+        m.top.advanceKey = "right"
+        m.top.reverseKey = "left"
+    end if
+
     setupRects()
     m.top.targetSet = m.sets[m.indexes.targetSet]
 
     ' Apply clipping rect to discard flashing cards
     x = 0
     y = 0
-    width = (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
-    height = m.top.cardHeight
+    width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
+    height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
     m.top.clippingRect = [x, y, width, height]
 end sub
 
@@ -87,7 +98,7 @@ function generateTargetSets() as object
     ' Control variables
     numRects = m.top.numRects
     minFocused = m.top.minFocused
-    maxFocused = (m.top.maxFocused > m.top.minFocused) ? m.top.maxFocused : numRects - 1
+    maxFocused = (m.top.maxFocused > m.top.minFocused) ? m.top.maxFocused : numRects
     maxFocused = m.top.fixedFocus ? m.top.minFocused : maxFocused
 
     ' Configure sets
@@ -110,24 +121,31 @@ function generateTargetSet(focusIndex as integer) as object
     set = createObject("roSGNode", "TargetSet")
     rects = createObject("roArray", numRects, false)
 
-    x = -(m.top.cardWidth + m.top.cardSpacing)
-    y = 0
+    isVertical = m.top.verticalList
     width = m.top.cardWidth
     height = m.top.cardHeight
     spacing = m.top.cardSpacing
-    yOffset = m.top.usePlainStyle ? 0 : 5
+    x = isVertical ? 0 : -(width + spacing)
+    y = isVertical ? -(height + spacing) : 0
+    offset = m.top.usePlainStyle ? 0 : 5
     widthOffset = m.top.usePlainStyle ? 0 : 20
     heightOffset = m.top.usePlainStyle ? 0 : 10
 
     for i = 0 to numRects - 1
         rects[i] = [
             x,
-            i = focusIndex ? y + yOffset : y,
+            y,
             i = focusIndex ? width + widthOffset : width,
             i = focusIndex ? height + heightOffset : height
         ]
 
-        x = x + width + spacing
+        rects[i][isVertical ? 0 : 1] += (i = focusIndex) ? offset : 0
+
+        if isVertical
+            y = y + height + spacing
+        else
+            x = x + width + spacing
+        end if
     end for
 
     set.targetRects = rects
@@ -149,12 +167,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     result = false
 
-    if key = "left"
+    if key = m.top.reverseKey
         m.top.advancing = false
         m.top.reversing = true
         moveBackguard()
         result = true
-    else if key = "right"
+    else if key = m.top.advanceKey
         m.top.advancing = true
         m.top.reversing = false
         moveForward()
@@ -202,9 +220,9 @@ sub onCurrFocusItemIndexChange(event as object)
     data = event.getData()
 
     if data - int(data) = 0 and m.navigation.press = true and m.top.enableAnimation
-        if m.navigation.key = "left"
+        if m.navigation.key = m.top.reverseKey
             moveBackguard()
-        else if m.navigation.key = "right"
+        else if m.navigation.key = m.top.advanceKey
             moveForward()
         end if
     end if

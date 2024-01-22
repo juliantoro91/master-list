@@ -42,6 +42,7 @@ function getInitialListConfig() as object
         cardWidth : 120
         cardHeight : 240
         cardSpacing : 40
+        verticalList : false
     }
 
     return settings

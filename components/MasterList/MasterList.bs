@@ -146,15 +146,20 @@ function onKeyEvent(key as string, press as boolean) as boolean
     m.navigation.press = press
     m.navigation.key = key
 
-    if not press then return false
+    if not press
+        m.top.advancing = false
+        m.top.reversing = false
+    end if
     if m.navigation.active = true then return true
 
     result = false
 
     if key = "left"
+        m.top.reversing = true
         moveBackguard()
         result = true
     else if key = "right"
+        m.top.advancing = true
         moveForward()
         result = true
     end if
@@ -163,22 +168,20 @@ function onKeyEvent(key as string, press as boolean) as boolean
 end function
 
 sub moveBackguard()
-    avoidAnimation = (m.indexes.content = 0 and m.top.wrap) ? true : false
     nextContentIndex = (m.indexes.content > 0) ? m.indexes.content - 1 : (m.top.wrap ? m.indexes.maxContent : 0)
     nextTargetSetIndex = (m.indexes.targetSet > 0) ? m.indexes.targetSet - 1 : 0
 
-    navigateAction(nextContentIndex, nextTargetSetIndex, avoidAnimation)
+    navigateAction(nextContentIndex, nextTargetSetIndex)
 end sub
 
 sub moveForward()
-    avoidAnimation = (m.indexes.content = m.indexes.maxContent and m.top.wrap) ? true : false
     nextContentIndex = (m.indexes.content < m.indexes.maxContent) ? m.indexes.content + 1 : (m.top.wrap ? 0 : m.indexes.maxContent)
     nextTargetSetIndex = (m.indexes.targetSet < m.indexes.maxTargetSet) ? m.indexes.targetSet + 1 : m.indexes.maxTargetSet
 
-    navigateAction(nextContentIndex, nextTargetSetIndex, avoidAnimation)
+    navigateAction(nextContentIndex, nextTargetSetIndex)
 end sub
 
-sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer, avoidAnimation=false as boolean)
+sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer)
     if nextTargetSetIndex <> m.indexes.targetSet
         if m.changeTargetSet
             m.indexes.targetSet = nextTargetSetIndex
@@ -194,7 +197,7 @@ sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer, a
 
     if m.changeContentIndex
         m.indexes.content = nextContentIndex
-        if m.top.enableAnimation and not avoidAnimation
+        if m.top.enableAnimation
             m.top.animateToItem = m.indexes.content
         else
             m.top.jumpToItem = m.indexes.content

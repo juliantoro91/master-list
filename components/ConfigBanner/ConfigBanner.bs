@@ -1,3 +1,13 @@
+enum Types
+    check = "checkbox"
+    num = "number"
+end enum
+
+enum SubTypes
+    int = "integer"
+    flo = "float"
+end enum
+
 sub init()
     m.top.id = "configBanner"
 
@@ -36,51 +46,101 @@ sub configureComponent(event as object)
     font.size = 60
     m.title.font = font
 
-    ' Wrap settings
-    m.wrap = createCheckbox("wrap", m.settings.wrap)
-    ' showTargetRects
-    ' duration
-    ' numRects
-    m.numRects = createNumberbox("numRects", m.settings.numRects)
+    ' Add configs
+    configs = getConfigs()
+
+    for each config in configs.items()
+        createItem(config)
+    end for
 
     m.focusController.totalItems = m.settingsContainer.getChildCount() - 1
 end sub
 
-function createCheckbox(attribute as string, defaultValue as boolean) as object
-    checkbox = CreateObject("roSGNode", "CheckboxItem")
+sub createItem(config)
+    nodeName = ""
+    if config.value.type = Types.check
+        nodeName = "CheckboxItem"
+    else if config.value.type = Types.num
+        nodeName = "NumberItem"
+    end if
 
-    checkbox.settings = {
-        key : attribute
-        label : getLabel(attribute)
-        value : defaultValue
+    item = CreateObject("roSGNode", nodeName)
+
+    item.settings = {
+        key : config.key
+        label : config.value.label
+        value : m.settings[config.key]
     }
 
-    checkbox.observeField("value", "onConfigItemChange")
+    item.observeField("value", "onConfigItemChange")
 
-    m.settingsContainer.appendChild(checkbox)
-end function
+    m.settingsContainer.appendChild(item)
+end sub
 
-function createNumberbox(attribute as string, defaultValue as integer) as object
-    numberbox = CreateObject("roSGNode", "NumberItem")
-
-    numberbox.settings = {
-        key : attribute
-        label : getLabel(attribute)
-        value : defaultValue
+function getConfigs() as object
+    configs = {
+        wrap : {
+            label : "Enable Wrap"
+            type : Types.check
+        }
+        duration : {
+            label : "Animation Duration"
+            type : Types.num
+            subType : SubTypes.flo
+        }
+        showTargetRects : {
+            label : "Show Target Rects"
+            type : Types.check
+        }
+        usePlainStyle : {
+            label : "Use Plain Style"
+            type : Types.check
+        }
+        fixedFocus : {
+            label : "Fixed Focus"
+            type : Types.check
+        }
+        enableAnimation : {
+            label : "Enable Animation"
+            type : Types.check
+        }
+        numRects : {
+            label : "Number of Rects"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        minFocused : {
+            label : "Minimum Focused"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        maxFocused : {
+            label : "Maximum Focused"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardWidth : {
+            label : "Card Width"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardHeight : {
+            label : "Card Height"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardSpacing : {
+            label : "Card Spacing"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        verticalList : {
+            label : "Vertical List"
+            type : Types.check
+        }
     }
 
-    numberbox.observeField("value", "onConfigItemChange")
-
-    m.settingsContainer.appendChild(numberbox)
-end function
-
-function getLabel(key as string) as string
-    labels = {
-        "wrap" : "Enable Wrap"
-        "numRects" : "Number of Rects"
-    }
-
-    return labels[key] ?? ""
+    return configs
 end function
 
 sub onConfigItemChange(event as object)

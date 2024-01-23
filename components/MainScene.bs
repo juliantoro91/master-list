@@ -93,7 +93,7 @@ end sub
 
 sub launchConfigBanner()
     m.configBanner = m.top.createChild("ConfigBanner")
-    m.configBanner.settings = m.list.settings
+    m.configBanner.settings = m.list@.get("settings")
 
     m.configBanner.setFocus(true)
 end sub

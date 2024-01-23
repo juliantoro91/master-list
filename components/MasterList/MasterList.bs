@@ -8,6 +8,7 @@ end sub
 
 sub initialSetup()
     initialSettings = {
+        itemComponentName : ""
         wrap : true
         duration : 0.3
         showTargetRects : true
@@ -26,6 +27,8 @@ sub initialSetup()
     }
 
     m.top.update(initialSettings, true)
+
+    m.settings = initialSettings
 end sub
 
 sub setVariables()
@@ -61,6 +64,7 @@ sub configureComponent(event as object)
 
     m.top.update(settings, true)
 
+    ' Keys for navigation
     if m.top.verticalList
         m.top.advanceKey = "down"
         m.top.reverseKey = "up"
@@ -78,6 +82,9 @@ sub configureComponent(event as object)
     width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
     height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
     m.top.clippingRect = [x, y, width, height]
+
+    ' Update settings
+    updateSettings()
 end sub
 
 sub onContentChange(event as object)
@@ -92,14 +99,14 @@ end sub
 
 function generateTargetSets() as object
     ' Adjustment required for the presence of flashing cards
-    m.top.minFocused++
-    m.top.maxFocused++
+    minFocused = m.top.minFocused + 1
+    maxFocused = m.top.maxFocused + 1
 
     ' Control variables
     numRects = m.top.numRects
-    minFocused = m.top.minFocused
-    maxFocused = (m.top.maxFocused > m.top.minFocused) ? m.top.maxFocused : numRects
-    maxFocused = m.top.fixedFocus ? m.top.minFocused : maxFocused
+    minFocused = minFocused
+    maxFocused = (m.top.maxFocused > minFocused) ? maxFocused : numRects
+    maxFocused = m.top.fixedFocus ? minFocused : maxFocused
 
     ' Configure sets
     sets = createObject("roArray", (maxFocused - minFocused) + 1, false) ' TODO: Check if it's practical to block resizing
@@ -236,6 +243,12 @@ sub onItemUnfocusedChange()
     m.navigation.active = true
 end sub
 
+sub updateSettings()
+    for each key in m.settings
+        m.settings[key] = m.top[key]
+    end for
+end sub
+
 
 ' Interfaces to check
 '' currTargetSet
@@ -247,8 +260,12 @@ end sub
 function get(key as string) as dynamic
     getters = {
         top : m.top
+        settings : m.settings
         dimensions : function () as object
             return m.top.clippingRect
+        end function
+        settings : function () as object
+            return m.settings
         end function
     }
 

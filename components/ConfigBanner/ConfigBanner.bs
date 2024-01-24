@@ -15,9 +15,9 @@ sub init()
     m.settingsContainer = m.top.findNode("settingsContainer")
 
     m.focusController = {
-        focusedItem : 1
+        focusedItem : 0
         totalItems : 0
-        minFocusedItem : 1
+        minFocusedItem : 0
     }
 
     m.top.observeField("settings", "configureComponent")
@@ -31,20 +31,6 @@ end sub
 sub configureComponent(event as object)
     settings = event.getData()
     m.settings.append(settings)
-
-    m.title = m.settingsContainer.createChild("Label")
-    m.title.width = 460
-    m.title.height = 150
-    m.title.text = "Master List Settings"
-    m.title.color = "#D5D5D5"
-    m.title.wrap = true
-    m.title.numLines = 2
-    m.title.lineSpacing = 0
-
-    font = createObject("roSGNode", "Font")
-    font.uri = "pkg:/fonts/Roboto-Bold.ttf"
-    font.size = 60
-    m.title.font = font
 
     ' Add configs
     configs = getConfigs()
@@ -159,14 +145,42 @@ sub onKeyEvent(key as string, press as boolean) as boolean
     else if key = "down"
         if m.focusController.focusedItem < m.focusController.totalItems
             m.focusController.focusedItem++
-            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+            navigationController()
         end if
     else if key = "up"
         if m.focusController.focusedItem > m.focusController.minFocusedItem
             m.focusController.focusedItem--
-            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+            navigationController()
         end if
     end if
 
     return true
+end sub
+
+sub navigationController()'direction as string)
+    focusedItem = m.settingsContainer.getChild(m.focusController.focusedItem)
+    focusedItem.setFocus(true)
+
+    clippingRect = m.settingsContainer.clippingRect
+    minVisibleHeight = clippingRect.y
+    maxVisibleHeight = clippingRect.height + clippingRect.y
+
+    itemDimensions = focusedItem.boundingRect()
+    itemHeight = itemDimensions.y + itemDimensions.height
+
+    displacement = 0
+    if itemHeight > maxVisibleHeight
+        displacement = itemHeight - maxVisibleHeight
+    else if itemHeight < minVisibleHeight
+        displacement = itemHeight - minVisibleHeight
+    end if
+
+    if displacement <> 0
+        FromY = m.settingsContainer.translation
+        m.settingsContainer.translation = [FromY[0], FromY[1] - displacement]
+
+        m.settingsContainer.clippingRect = [
+            clippingRect.x, clippingRect.y + displacement,
+            clippingRect.width, clippingRect.height]
+    end if
 end sub

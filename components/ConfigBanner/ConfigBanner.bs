@@ -172,7 +172,7 @@ sub navigationController()'direction as string)
     if itemHeight > maxVisibleHeight
         displacement = itemHeight - maxVisibleHeight
     else if itemHeight < minVisibleHeight
-        displacement = itemHeight - minVisibleHeight
+        displacement = itemHeight - minVisibleHeight - itemDimensions.height
     end if
 
     if displacement <> 0

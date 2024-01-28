@@ -52,11 +52,17 @@ sub createItem(config)
 
     item = CreateObject("roSGNode", nodeName)
 
-    item.settings = {
+    settings = {
         key : config.key
         label : config.value.label
         value : m.settings[config.key]
     }
+
+    if config.value.type = Types.num
+        settings.subtype = config.value.subtype
+    end if
+
+    item.settings = settings
 
     item.observeField("value", "onConfigItemChange")
 

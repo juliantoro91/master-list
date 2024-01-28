@@ -41,6 +41,16 @@ sub onKeyEvent(key as string, press as boolean) as boolean
     if key = "OK"
         m.top.getScene().dialog = m.keyboard
         return true
+    else if key = "right" or key = "left"
+        rate = 1
+        if m.top.settings.subtype = "float" then rate = 0.1
+
+        if key = "left" then rate = -rate
+
+        m.top.value += rate
+
+        m.input.text = m.top.value
+        return true
     end if
 
     return false

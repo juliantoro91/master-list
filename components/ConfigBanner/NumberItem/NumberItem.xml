@@ -33,9 +33,9 @@
                 color="#D9D9D9" >
                 <Label
                     id="input"
-                    width="75"
+                    width="70"
                     height="50"
-                    translation="[0, 5]"
+                    translation="[5, 5]"
                     vertAlign="center"
                     horizAlign="right"
                     color="#101214">
@@ -47,7 +47,7 @@
                 </Label>
                 <Group
                     id="controller"
-                    translation="[-35, 0]" >
+                    translation="[-25, 0]" >
                     <Label
                         text="-"
                         height="60"
@@ -56,7 +56,7 @@
                         color="#D9D9D9" />
                     <Label
                         text="+"
-                        width="150"
+                        width="130"
                         height="60"
                         vertAlign="center"
                         horizAlign="right"

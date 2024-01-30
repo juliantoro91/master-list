@@ -21,12 +21,27 @@
             height="1080"
             color="#101214"
             translation="[1340, 0]">
+            <Label
+                width="460"
+                height="150"
+                text="Master List Settings"
+                color="#D5D5D5"
+                wrap="true"
+                numLines="2"
+                lineSpacing="0"
+                translation="[50, 70]" >
+                <Font
+                    uri="pkg:/fonts/Roboto-Bold.ttf"
+                    size="60"
+                    role="font" />
+            </Label>
             <LayoutGroup
                 id="settingsContainer"
                 layoutDirection="vert"
                 horizAlignment="left"
-                translation="[50, 70]"
-                itemSpacings="[40, 35]" />
+                translation="[50, 260]"
+                itemSpacings="[35]"
+                clippingRect="[0, 0, 460, 775]" />
         </Rectangle>
     </children>
 </component>

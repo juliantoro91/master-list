@@ -1,3 +1,13 @@
+enum Types
+    check = "checkbox"
+    num = "number"
+end enum
+
+enum SubTypes
+    int = "integer"
+    flo = "float"
+end enum
+
 sub init()
     m.top.id = "configBanner"
 
@@ -5,9 +15,9 @@ sub init()
     m.settingsContainer = m.top.findNode("settingsContainer")
 
     m.focusController = {
-        focusedItem : 1
+        focusedItem : 0
         totalItems : 0
-        minFocusedItem : 1
+        minFocusedItem : 0
     }
 
     m.top.observeField("settings", "configureComponent")
@@ -22,65 +32,107 @@ sub configureComponent(event as object)
     settings = event.getData()
     m.settings.append(settings)
 
-    m.title = m.settingsContainer.createChild("Label")
-    m.title.width = 460
-    m.title.height = 150
-    m.title.text = "Master List Settings"
-    m.title.color = "#D5D5D5"
-    m.title.wrap = true
-    m.title.numLines = 2
-    m.title.lineSpacing = 0
+    ' Add configs
+    configs = getConfigs()
 
-    font = createObject("roSGNode", "Font")
-    font.uri = "pkg:/fonts/Roboto-Bold.ttf"
-    font.size = 60
-    m.title.font = font
-
-    ' Wrap settings
-    m.wrap = createCheckbox("wrap", m.settings.wrap)
-    ' showTargetRects
-    ' duration
-    ' numRects
-    m.numRects = createNumberbox("numRects", m.settings.numRects)
+    for each config in configs.items()
+        createItem(config)
+    end for
 
     m.focusController.totalItems = m.settingsContainer.getChildCount() - 1
 end sub
 
-function createCheckbox(attribute as string, defaultValue as boolean) as object
-    checkbox = CreateObject("roSGNode", "CheckboxItem")
+sub createItem(config)
+    nodeName = ""
+    if config.value.type = Types.check
+        nodeName = "CheckboxItem"
+    else if config.value.type = Types.num
+        nodeName = "NumberItem"
+    end if
 
-    checkbox.settings = {
-        key : attribute
-        label : getLabel(attribute)
-        value : defaultValue
+    item = CreateObject("roSGNode", nodeName)
+
+    settings = {
+        key : config.key
+        label : config.value.label
+        value : m.settings[config.key]
     }
 
-    checkbox.observeField("value", "onConfigItemChange")
+    if config.value.type = Types.num
+        settings.subtype = config.value.subtype
+    end if
 
-    m.settingsContainer.appendChild(checkbox)
-end function
+    item.settings = settings
 
-function createNumberbox(attribute as string, defaultValue as integer) as object
-    numberbox = CreateObject("roSGNode", "NumberItem")
+    item.observeField("value", "onConfigItemChange")
 
-    numberbox.settings = {
-        key : attribute
-        label : getLabel(attribute)
-        value : defaultValue
+    m.settingsContainer.appendChild(item)
+end sub
+
+function getConfigs() as object
+    configs = {
+        wrap : {
+            label : "Enable Wrap"
+            type : Types.check
+        }
+        duration : {
+            label : "Animation Duration"
+            type : Types.num
+            subType : SubTypes.flo
+        }
+        showTargetRects : {
+            label : "Show Target Rects"
+            type : Types.check
+        }
+        usePlainStyle : {
+            label : "Use Plain Style"
+            type : Types.check
+        }
+        fixedFocus : {
+            label : "Fixed Focus"
+            type : Types.check
+        }
+        enableAnimation : {
+            label : "Enable Animation"
+            type : Types.check
+        }
+        numRects : {
+            label : "Number of Rects"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        minFocused : {
+            label : "Minimum Focused"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        maxFocused : {
+            label : "Maximum Focused"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardWidth : {
+            label : "Card Width"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardHeight : {
+            label : "Card Height"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        cardSpacing : {
+            label : "Card Spacing"
+            type : Types.num
+            subType : SubTypes.int
+        }
+        verticalList : {
+            label : "Vertical List"
+            type : Types.check
+        }
     }
 
-    numberbox.observeField("value", "onConfigItemChange")
-
-    m.settingsContainer.appendChild(numberbox)
-end function
-
-function getLabel(key as string) as string
-    labels = {
-        "wrap" : "Enable Wrap"
-        "numRects" : "Number of Rects"
-    }
-
-    return labels[key] ?? ""
+    return configs
 end function
 
 sub onConfigItemChange(event as object)
@@ -99,14 +151,42 @@ sub onKeyEvent(key as string, press as boolean) as boolean
     else if key = "down"
         if m.focusController.focusedItem < m.focusController.totalItems
             m.focusController.focusedItem++
-            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+            navigationController()
         end if
     else if key = "up"
         if m.focusController.focusedItem > m.focusController.minFocusedItem
             m.focusController.focusedItem--
-            m.settingsContainer.getChild(m.focusController.focusedItem).setFocus(true)
+            navigationController()
         end if
     end if
 
     return true
+end sub
+
+sub navigationController()'direction as string)
+    focusedItem = m.settingsContainer.getChild(m.focusController.focusedItem)
+    focusedItem.setFocus(true)
+
+    clippingRect = m.settingsContainer.clippingRect
+    minVisibleHeight = clippingRect.y
+    maxVisibleHeight = clippingRect.height + clippingRect.y
+
+    itemDimensions = focusedItem.boundingRect()
+    itemHeight = itemDimensions.y + itemDimensions.height
+
+    displacement = 0
+    if itemHeight > maxVisibleHeight
+        displacement = itemHeight - maxVisibleHeight
+    else if itemHeight < minVisibleHeight
+        displacement = itemHeight - minVisibleHeight - itemDimensions.height
+    end if
+
+    if displacement <> 0
+        FromY = m.settingsContainer.translation
+        m.settingsContainer.translation = [FromY[0], FromY[1] - displacement]
+
+        m.settingsContainer.clippingRect = [
+            clippingRect.x, clippingRect.y + displacement,
+            clippingRect.width, clippingRect.height]
+    end if
 end sub

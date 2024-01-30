@@ -9,6 +9,19 @@ sub init()
     m.top.observeField("focusedChild", "onFocusChange")
     m.keyboard.observeField("buttonSelected", "onKeyboardAction")
     m.keyboard.observeField("wasClosed", "onKeyboardAction")
+
+    m.navigation = {
+        press : false
+        key : ""
+        timer : {
+            timer : CreateObject("roSGNode", "Timer")
+            initValue : 0.3
+            currValue : 0
+            minValue : 0.05
+            modulator : 0.8
+        }
+    }
+    m.navigation.timer.timer.observeField("fire", "navigateAction")
 end sub
 
 sub onFocusChange()
@@ -29,21 +42,51 @@ sub configureComponent(event as object)
     m.top.update(settings, true)
 
     m.label.text = settings.label
-    m.input.text = settings.value
+    m.input.text = getString(settings.value)
 
     m.keyboard.title = settings.label
-    m.keyboard.text = settings.value
+    m.keyboard.text = m.input.text
 end sub
 
 sub onKeyEvent(key as string, press as boolean) as boolean
-    if not press then return false
+    m.navigation.press = press
+    m.navigation.key = key
+
+    if not press
+        m.navigation.timer.currValue = m.navigation.timer.initValue
+        return false
+    end if
 
     if key = "OK"
         m.top.getScene().dialog = m.keyboard
         return true
+    else if key = "right" or key = "left"
+        navigateAction()
+        return true
     end if
 
     return false
+end sub
+
+sub navigateAction()
+    if m.navigation.press = false then return
+
+    rate = 1
+    if m.top.settings.subtype = "float" then rate = 0.1
+
+    if m.navigation.key = "left" then rate = -rate
+
+    m.top.value += rate
+
+    m.input.text = getString(m.top.value)
+
+    m.navigation.timer.currValue *= m.navigation.timer.modulator
+    if m.navigation.timer.currValue < m.navigation.timer.minValue
+        m.navigation.timer.currValue = m.navigation.timer.minValue
+    end if
+    timer = m.navigation.timer.timer
+    timer.duration = m.navigation.timer.currValue
+    timer.control = "start"
 end sub
 
 sub onKeyboardAction(event as object)
@@ -51,10 +94,16 @@ sub onKeyboardAction(event as object)
 
     if selectedButton = 0
         m.top.value = m.keyboard.text
-        m.input.text = m.top.value
+        m.input.text = getString(m.top.value)
     else if selectedButton = 1 or selectedButton = invalid
-        m.keyboard.text = m.top.value
+        m.keyboard.text = getString(m.top.value)
     end if
 
     m.keyboard.close = true
 end sub
+
+function getString(value as float)
+    value = Cint(value * 10)
+
+    return (value / 10).toStr()
+end function

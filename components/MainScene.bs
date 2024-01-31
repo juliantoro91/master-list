@@ -86,6 +86,8 @@ sub onKeyEvent(key as string, press as boolean) as boolean
             m.configBanner = invalid
             result = true
         end if
+    else if key = "play"
+        printABitmap()
     end if
 
     return result
@@ -97,3 +99,51 @@ sub launchConfigBanner()
 
     m.configBanner.setFocus(true)
 end sub
+
+' RoBITMAP Experiments
+sub printABitmap()
+    params = {
+        width : 501
+        height : 501
+        color : "FFFF00"
+    }
+
+    draw = CreateObject("roBitmap", {width: params.width, height: params.height, AlphaEnable: true})
+
+    color = {
+        full : colorHexToInt(params.color, 255)
+        trans : colorHexToInt(params.color, 0)
+    }
+
+    centerx = Int(params.width/2) + 1
+    centery = Int(params.height/2) + 1
+    radio = Int(params.height/2)
+
+    for x = 0 to params.width - 1
+        for y = 0 to params.height - 1
+            tempColor = color.trans
+            if (x - centerx)^2 + (y - centery)^2 < radio^2
+                tempColor = color.full
+            end if
+            draw.drawPoint(x, y, 1, tempColor)
+        end for
+    end for
+
+    tempPNG = draw.getPng(0, 0, draw.getWidth(), draw.getHeight())
+    tempPNG.writeFile("tmp:/temp.png")
+
+    poster = CreateObject("roSGNode", "Poster")
+    poster.width = draw.getWidth()
+    poster.height = draw.getHeight()
+    poster.uri = "tmp:/temp.png"
+    poster.translation = [100, 100]
+
+    m.top.appendChild(poster)
+end sub
+
+function colorHexToInt(colorHex as object, alpha as integer)
+    color = CreateObject("roByteArray")
+    color.fromHexString(colorHex)
+
+    return (color[0] * 256^3) + (color[1] * 256^2) + (color[2] * 256) + alpha
+end function

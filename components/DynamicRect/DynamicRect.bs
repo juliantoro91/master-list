@@ -1,0 +1,52 @@
+sub init()
+end sub
+
+sub configureDynamicRect(event as object)
+    settings = event.getData()
+
+    m.params = {
+        width : settings.width
+        height : settings.height
+        color : settings.color
+    }
+
+    renderDynamicRect()
+end sub
+
+sub renderDynamicRect()
+    draw = CreateObject("roBitmap", {width: m.params.width, height: m.params.height, AlphaEnable: true})
+
+    color = {
+        full : colorHexToInt(m.params.color, 255)
+        trans : colorHexToInt(m.params.color, 0)
+    }
+
+    centerx = Int(m.params.width/2) + 1
+    centery = Int(m.params.height/2) + 1
+    radio = Int(m.params.height/2)
+
+    for x = 0 to m.params.width - 1
+        for y = 0 to m.params.height - 1
+            tempColor = color.trans
+            if (x - centerx)^2 + (y - centery)^2 < radio^2
+                tempColor = color.full
+            end if
+            draw.drawPoint(x, y, 1, tempColor)
+        end for
+    end for
+
+    tempPNG = draw.getPng(0, 0, draw.getWidth(), draw.getHeight())
+    tempPNG.writeFile("tmp:/temp.png")
+
+    m.top.width = draw.getWidth()
+    m.top.height = draw.getHeight()
+    m.top.uri = "tmp:/temp.png"
+    m.top.translation = [100, 100]
+end sub
+
+function colorHexToInt(colorHex as object, alpha as integer)
+    color = CreateObject("roByteArray")
+    color.fromHexString(colorHex)
+
+    return (color[0] * 256^3) + (color[1] * 256^2) + (color[2] * 256) + alpha
+end function

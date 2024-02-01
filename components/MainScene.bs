@@ -88,7 +88,10 @@ sub onKeyEvent(key as string, press as boolean) as boolean
         end if
     else if key = "play"
         rect = CreateObject("roSGNode", "DynamicRect")
-        rect.settings = {width : 501, height : 501, color : "FFFF00"}
+        rect.settings = {
+            width : 501, height : 501, color : "FFFF00",
+            thickness : 20
+        }
         m.top.appendChild(rect)
     end if
 

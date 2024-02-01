@@ -8,6 +8,7 @@ sub configureDynamicRect(event as object)
         width : settings.width
         height : settings.height
         color : settings.color
+        thickness : settings.thickness
     }
 
     renderDynamicRect()
@@ -24,22 +25,41 @@ sub renderDynamicRect()
     centerx = Int(m.params.width/2) + 1
     centery = Int(m.params.height/2) + 1
     radio = Int(m.params.height/2)
+    thickness = m.params.thickness ?? radio
 
     for x = 0 to m.params.width - 1
         for y = 0 to m.params.height - 1
             tempColor = color.trans
-            if (x - centerx)^2 + (y - centery)^2 < radio^2
+            value = (x - centerx)^2 + (y - centery)^2
+            if (radio - thickness)^2 <= value and value <= radio^2
                 tempColor = color.full
             end if
             draw.drawPoint(x, y, 1, tempColor)
         end for
     end for
 
-    tempPNG = draw.getPng(0, 0, draw.getWidth(), draw.getHeight())
+    midWidth = m.params.width / 2
+    midHeight = m.params.height / 2
+    for i = 0 to 1
+        for j = 0 to 1
+            tempPNG = draw.getPng(i*midWidth, j*midHeight, midWidth, midHeight)
+            tempPNG.writeFile(`tmp:/temp${i}${j}.png`)
+        end for
+    end for
+
+    poster = CreateObject("roBitmap", {width: m.params.width * 1.5, height: m.params.height * 1.5, AlphaEnable: true})
+    for i = 0 to 1
+        for j = 0 to 1
+            bm = CreateObject("roBitmap", `tmp:/temp${i}${j}.png`)
+            poster.drawObject(i*2*midWidth, j*2*midHeight, bm)
+            DeleteFile(`tmp:/temp${i}${j}.png`)
+        end for
+    end for
+    tempPNG = poster.getPng(0, 0, poster.getWidth(), poster.getHeight())
     tempPNG.writeFile("tmp:/temp.png")
 
-    m.top.width = draw.getWidth()
-    m.top.height = draw.getHeight()
+    m.top.width = poster.getWidth()
+    m.top.height = poster.getHeight()
     m.top.uri = "tmp:/temp.png"
     m.top.translation = [100, 100]
 end sub

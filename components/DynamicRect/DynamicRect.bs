@@ -57,6 +57,7 @@ sub renderDynamicRect()
         end for
     end for
     tempPNG = poster.getPng(0, 0, poster.getWidth(), poster.getHeight())
+    DeleteFile("tmp:/temp.png")
     tempPNG.writeFile("tmp:/temp.png")
     poster.finish()
 

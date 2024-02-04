@@ -25,6 +25,10 @@ sub initialSetup()
         verticalList : false
         advanceKey : "right"
         reverseKey : "left"
+        ' Focus
+        focusColor : "FFFFFF"
+        focusThickness : 0
+        focusCornerRadius : 0
     }
 
     m.top.update(initialSettings, true)
@@ -175,8 +179,8 @@ end function
 
 sub configureFocusObject()
     m.focus.settings = {
-        width : m.top.cardWidth, height : m.top.cardHeight, color : "FFFF00",
-        thickness : 6, cornerRadius : 9
+        width : m.top.cardWidth, height : m.top.cardHeight, color : m.top.focusColor,
+        thickness : m.top.focusThickness, cornerRadius : m.top.focusCornerRadius
     }
 end sub
 

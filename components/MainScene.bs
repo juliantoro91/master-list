@@ -86,13 +86,6 @@ sub onKeyEvent(key as string, press as boolean) as boolean
             m.configBanner = invalid
             result = true
         end if
-    else if key = "play"
-        rect = CreateObject("roSGNode", "DynamicRect")
-        rect.settings = {
-            width : 500, height : 500, color : "FFFF00",
-            thickness : 20, cornerRadius : 50
-        }
-        m.top.appendChild(rect)
     end if
 
     return result

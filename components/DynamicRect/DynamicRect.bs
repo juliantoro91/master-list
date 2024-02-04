@@ -58,12 +58,12 @@ sub renderDynamicRect()
     end for
     tempPNG = poster.getPng(0, 0, poster.getWidth(), poster.getHeight())
     tempPNG.writeFile("tmp:/temp.png")
+    poster.finish()
 
     ' Save image and add it to a poster
     m.top.width = poster.getWidth()
     m.top.height = poster.getHeight()
     m.top.uri = "tmp:/temp.png"
-    m.top.translation = [100, 100]
 end sub
 
 ' Function to convert color as hex to integer

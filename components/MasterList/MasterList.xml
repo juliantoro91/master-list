@@ -10,5 +10,17 @@
         <function name="get" />
     </interface>
 
-    <children />
+    <children>
+        <DynamicRect
+            id="focus" />
+
+        <Animation
+            id="focusAnimation"
+            easeFunction="linear" >
+            <Vector2DFieldInterpolator
+                id = "focusAnimInterp"
+                key="[0.0, 1.0]"
+                fieldToInterp="focus.translation" />
+        </Animation>
+    </children>
 </component>

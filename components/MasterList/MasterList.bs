@@ -2,6 +2,7 @@
 
 sub init()
     initialSetup()
+    initComponents()
     setVariables()
     setObservers()
 end sub
@@ -29,6 +30,12 @@ sub initialSetup()
     m.top.update(initialSettings, true)
 
     m.settings = initialSettings
+end sub
+
+sub initComponents()
+    m.focus = m.top.findNode("focus")
+    m.focusAnimation = m.top.findNode("focusAnimation")
+    m.focusAnimInterp = m.top.findNode("focusAnimInterp")
 end sub
 
 sub setVariables()
@@ -85,6 +92,11 @@ sub configureComponent(event as object)
 
     ' Update settings
     updateSettings()
+
+    ' Add focus
+    configureFocusObject()
+    animateFocus(false)
+    m.focusAnimation.duration = m.top.duration
 end sub
 
 sub onContentChange(event as object)
@@ -161,6 +173,13 @@ function generateTargetSet(focusIndex as integer) as object
     return set
 end function
 
+sub configureFocusObject()
+    m.focus.settings = {
+        width : m.top.cardWidth, height : m.top.cardHeight, color : "FFFF00",
+        thickness : 6, cornerRadius : 9
+    }
+end sub
+
 function onKeyEvent(key as string, press as boolean) as boolean
     m.navigation.press = press
     m.navigation.key = key
@@ -211,6 +230,7 @@ sub navigateAction(nextContentIndex as integer, nextTargetSetIndex as integer)
         else
             m.top.targetSet = m.sets[m.indexes.targetSet]
         end if
+        animateFocus(m.top.enableAnimation)
     end if
 
     if nextContentIndex <> m.indexes.content
@@ -232,6 +252,21 @@ sub onCurrFocusItemIndexChange(event as object)
         else if m.navigation.key = m.top.advanceKey
             moveForward()
         end if
+    end if
+end sub
+
+sub animateFocus(animate=true as boolean)
+    targetSet = m.sets[m.indexes.targetSet]
+
+    index = targetSet.focusIndex
+    rect = targetSet.targetRects[index]
+    targetTranslation = [rect.x, rect.y]
+
+    if animate
+        m.focusAnimInterp.keyValue = [m.focus.translation, targetTranslation]
+        m.focusAnimation.control = "start"
+    else
+        m.focus.translation = targetTranslation
     end if
 end sub
 

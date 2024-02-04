@@ -9,61 +9,72 @@ sub configureDynamicRect(event as object)
         height : settings.height
         color : settings.color
         thickness : settings.thickness
+        cornerRadius : settings.cornerRadius
     }
 
     renderDynamicRect()
 end sub
 
+' Function to render a Dynamic rounded corner rect
 sub renderDynamicRect()
-    draw = CreateObject("roBitmap", {width: m.params.width, height: m.params.height, AlphaEnable: true})
+    ' Control variables
+    width = m.params.width
+    height = m.params.height
+    thickness = m.params.thickness
+    radius = m.params.cornerRadius
+    color = colorHexToInt(m.params.color, 255)
 
-    color = {
-        full : colorHexToInt(m.params.color, 255)
-        trans : colorHexToInt(m.params.color, 0)
-    }
+    ' Initialize roBitmap corners
+    draw = CreateObject("roBitmap", {width: radius * 2, height: radius * 2, AlphaEnable: true})
 
-    centerx = Int(m.params.width/2) + 1
-    centery = Int(m.params.height/2) + 1
-    radio = Int(m.params.height/2)
-    thickness = m.params.thickness ?? radio
-
-    for x = 0 to m.params.width - 1
-        for y = 0 to m.params.height - 1
-            tempColor = color.trans
-            value = (x - centerx)^2 + (y - centery)^2
-            if (radio - thickness)^2 <= value and value <= radio^2
-                tempColor = color.full
+    ' Build base circle
+    for x = 0 to width - 1
+        for y = 0 to height - 1
+            value = (x - radius)^2 + (y - radius)^2
+            if (radius - thickness)^2 <= value and value <= radius^2
+                draw.drawPoint(x, y, 1, color)
             end if
-            draw.drawPoint(x, y, 1, tempColor)
         end for
     end for
 
-    midWidth = m.params.width / 2
-    midHeight = m.params.height / 2
+    ' Clip circle to get corner
     for i = 0 to 1
         for j = 0 to 1
-            tempPNG = draw.getPng(i*midWidth, j*midHeight, midWidth, midHeight)
+            tempPNG = draw.getPng(i * radius, j * radius, radius, radius)
             tempPNG.writeFile(`tmp:/temp${i}${j}.png`)
         end for
     end for
 
-    poster = CreateObject("roBitmap", {width: m.params.width * 1.5, height: m.params.height * 1.5, AlphaEnable: true})
+    ' Initialize roBitbap for final image
+    poster = CreateObject("roBitmap", {width: width, height: height, AlphaEnable: true})
+
+    ' Build rectangle
     for i = 0 to 1
         for j = 0 to 1
+            ' Add corner
             bm = CreateObject("roBitmap", `tmp:/temp${i}${j}.png`)
-            poster.drawObject(i*2*midWidth, j*2*midHeight, bm)
+            poster.drawObject(i * (width - radius), j * (height - radius), bm)
             DeleteFile(`tmp:/temp${i}${j}.png`)
+
+            ' Add rect
+            x = (i + j) = 2 ? width - thickness : (i + j) * radius
+            y = i = j ? radius : i * (height - thickness)
+            w = i = j ? thickness : width - 2 * radius
+            h = i = j ? height - 2 * radius : thickness
+            poster.drawRect(x, y, w, h, color)
         end for
     end for
     tempPNG = poster.getPng(0, 0, poster.getWidth(), poster.getHeight())
     tempPNG.writeFile("tmp:/temp.png")
 
+    ' Save image and add it to a poster
     m.top.width = poster.getWidth()
     m.top.height = poster.getHeight()
     m.top.uri = "tmp:/temp.png"
     m.top.translation = [100, 100]
 end sub
 
+' Function to convert color as hex to integer
 function colorHexToInt(colorHex as object, alpha as integer)
     color = CreateObject("roByteArray")
     color.fromHexString(colorHex)

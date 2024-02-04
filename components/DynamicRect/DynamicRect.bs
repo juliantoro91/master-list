@@ -25,36 +25,28 @@ sub renderDynamicRect()
     color = colorHexToInt(m.params.color, 255)
 
     ' Initialize roBitmap corners
-    draw = CreateObject("roBitmap", {width: radius * 2, height: radius * 2, AlphaEnable: true})
+    circle = CreateObject("roBitmap", {width: radius * 2, height: radius * 2, AlphaEnable: true})
 
     ' Build base circle
-    for x = 0 to width - 1
-        for y = 0 to height - 1
+    for x = 0 to circle.getWidth()
+        for y = 0 to circle.getHeight()
             value = (x - radius)^2 + (y - radius)^2
             if (radius - thickness)^2 <= value and value <= radius^2
-                draw.drawPoint(x, y, 1, color)
+                circle.drawPoint(x, y, 1, color)
             end if
-        end for
-    end for
-
-    ' Clip circle to get corner
-    for i = 0 to 1
-        for j = 0 to 1
-            tempPNG = draw.getPng(i * radius, j * radius, radius, radius)
-            tempPNG.writeFile(`tmp:/temp${i}${j}.png`)
         end for
     end for
 
     ' Initialize roBitbap for final image
     poster = CreateObject("roBitmap", {width: width, height: height, AlphaEnable: true})
 
-    ' Build rectangle
+    ' Clip circle to get corner
     for i = 0 to 1
         for j = 0 to 1
+            corner = CreateObject("roRegion", circle, i * radius, j * radius, radius, radius)
+
             ' Add corner
-            bm = CreateObject("roBitmap", `tmp:/temp${i}${j}.png`)
-            poster.drawObject(i * (width - radius), j * (height - radius), bm)
-            DeleteFile(`tmp:/temp${i}${j}.png`)
+            poster.drawObject(i * (width - radius), j * (height - radius), corner)
 
             ' Add rect
             x = (i + j) = 2 ? width - thickness : (i + j) * radius

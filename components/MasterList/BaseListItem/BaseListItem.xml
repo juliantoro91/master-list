@@ -2,8 +2,8 @@
 
 <!--********** By juliantoro91.  More info: https://github.com/juliantoro91 **********-->
 
-<component name="SimpleListItem" extends="Group">
-    <script type="text/brightscript" uri="SimpleListItem.bs" />
+<component name="BaseListItem" extends="Group">
+    <script type="text/brightscript" uri="BaseListItem.bs" />
 
     <interface>
         <field id="itemContent" type="node" onChange="onContentSet" alwaysNotify="true" />

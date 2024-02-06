@@ -31,7 +31,7 @@ end sub
 
 function getInitialListConfig() as object
     settings = {
-        itemComponentName : "SimpleListItem"
+        itemComponentName : "BaseListItem"
         wrap : true
         duration : 0.3
         showTargetRects : true

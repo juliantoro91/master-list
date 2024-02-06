@@ -13,7 +13,7 @@ sub initialSetup()
         wrap : true
         duration : 0.3
         showTargetRects : true
-        usePlainStyle : false
+        usePlainStyle : true
         fixedFocus : false
         enableAnimation : true
         numRects : 0
@@ -22,6 +22,11 @@ sub initialSetup()
         cardWidth : 0
         cardHeight : 0
         cardSpacing : 0
+        variableCardSize : {
+            width : [0]
+            height : [0]
+            method : "" ' It could be size or factor
+        }
         verticalList : false
         advanceKey : "right"
         reverseKey : "left"
@@ -87,12 +92,12 @@ sub configureComponent(event as object)
     setupRects()
     m.top.targetSet = m.sets[m.indexes.targetSet]
 
-    ' Apply clipping rect to discard flashing cards
+    ' Apply clipping rect to discard flashing cards ' TODO: Check logic taking into accound variable card size
     x = 0
     y = 0
-    width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
-    height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
-    m.top.clippingRect = [x, y, width, height]
+    ' width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
+    ' height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
+    ' m.top.clippingRect = [x, y, width, height]
 
     ' Update settings
     updateSettings()
@@ -150,9 +155,21 @@ function generateTargetSet(focusIndex as integer) as object
     spacing = m.top.cardSpacing
     x = isVertical ? 0 : -(width + spacing)
     y = isVertical ? -(height + spacing) : 0
-    offset = m.top.usePlainStyle ? 0 : 5
-    widthOffset = m.top.usePlainStyle ? 0 : 20
-    heightOffset = m.top.usePlainStyle ? 0 : 10
+
+    offset = m.top.usePlainStyle ? 0 : 0 ' TODO: Add offset
+
+    widthOffset = 0
+    heightOffset = 0
+    if not m.top.usePlainStyle
+        variableCardSize = m.top.variableCardSize
+        if variableCardSize.method = "factor"
+            widthOffset = (variableCardSize.width[0] - 1) * width
+            heightOffset = (variableCardSize.height[0] - 1) * height
+        else if variableCardSize.method = "size"
+            widthOffset = variableCardSize.width[0] - width
+            heightOffset = variableCardSize.height[0] - height
+        end if
+    end if
 
     for i = 0 to numRects - 1
         rects[i] = [
@@ -165,9 +182,9 @@ function generateTargetSet(focusIndex as integer) as object
         rects[i][isVertical ? 0 : 1] += (i = focusIndex) ? offset : 0
 
         if isVertical
-            y = y + height + spacing
+            y = y + rects[i][3] + spacing
         else
-            x = x + width + spacing
+            x = x + rects[i][2] + spacing
         end if
     end for
 

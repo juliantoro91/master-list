@@ -43,6 +43,9 @@ function getInitialListConfig() as object
         cardHeight : 240
         cardSpacing : 40
         verticalList : false
+        focusColor : "FFFF00"
+        focusThickness : 3
+        focusCornerRadius : 9
     }
 
     return settings

@@ -130,6 +130,15 @@ function getConfigs() as object
             label : "Vertical List"
             type : Types.check
         }
+        ' TODO: focusColor
+        focusThickness : {
+            label : "Focus Thickness"
+            type : Types.num
+        }
+        focusCornerRadius : {
+            label : "Focus Corner Rad."
+            type : Types.num
+        }
     }
 
     return configs

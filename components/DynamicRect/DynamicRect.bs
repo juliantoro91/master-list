@@ -1,0 +1,79 @@
+sub init()
+end sub
+
+sub configureDynamicRect(event as object)
+    settings = event.getData()
+
+    m.params = {
+        width : settings.width
+        height : settings.height
+        color : settings.color
+        thickness : settings.thickness
+        cornerRadius : settings.cornerRadius
+    }
+
+    renderDynamicRect()
+end sub
+
+' Function to render a Dynamic rounded corner rect
+sub renderDynamicRect()
+    ' Control variables
+    width = m.params.width
+    height = m.params.height
+    thickness = m.params.thickness
+    radius = m.params.cornerRadius
+    color = colorHexToInt(m.params.color, 255)
+
+    ' Initialize roBitmap corners
+    circle = CreateObject("roBitmap", {width: radius * 2, height: radius * 2, AlphaEnable: true})
+
+    ' Build base circle
+    for x = 0 to circle.getWidth()
+        for y = 0 to circle.getHeight()
+            value = (x - radius)^2 + (y - radius)^2
+            if (radius - thickness)^2 <= value and value <= radius^2
+                circle.drawPoint(x, y, 1, color)
+            end if
+        end for
+    end for
+
+    ' Initialize roBitbap for final image
+    poster = CreateObject("roBitmap", {width: width, height: height, AlphaEnable: true})
+
+    ' Clip circle to get corner
+    for i = 0 to 1
+        for j = 0 to 1
+            corner = CreateObject("roRegion", circle, i * radius, j * radius, radius, radius)
+
+            ' Add corner
+            poster.drawObject(i * (width - radius), j * (height - radius), corner)
+
+            ' Add rect
+            x = (i + j) = 2 ? width - thickness : (i + j) * radius
+            y = i = j ? radius : i * (height - thickness)
+            w = i = j ? thickness : width - 2 * radius
+            h = i = j ? height - 2 * radius : thickness
+            poster.drawRect(x, y, w, h, color)
+        end for
+    end for
+    tempPNG = poster.getPng(0, 0, poster.getWidth(), poster.getHeight())
+
+    fileName = [
+        width.toStr(), height.toStr(), thickness.toStr(),
+        radius.toStr(), color.toStr()].join("_")
+    tempPNG.writeFile(`tmp:/temp_${fileName}.png`)
+    poster.finish()
+
+    ' Save image and add it to a poster
+    m.top.width = m.params.width
+    m.top.height = m.params.height
+    m.top.uri = `tmp:/temp_${fileName}.png`
+end sub
+
+' Function to convert color as hex to integer
+function colorHexToInt(colorHex as object, alpha as integer)
+    color = CreateObject("roByteArray")
+    color.fromHexString(colorHex)
+
+    return (color[0] * 256^3) + (color[1] * 256^2) + (color[2] * 256) + alpha
+end function

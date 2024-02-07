@@ -60,6 +60,11 @@ sub setVariables()
         press : false
         key : ""
     }
+
+    m.minPos = 0
+    m.maxPos = 0
+    m.minTransPos = 0
+    m.maxTransPos = 0
 end sub
 
 sub setObservers()
@@ -93,11 +98,11 @@ sub configureComponent(event as object)
     m.top.targetSet = m.sets[m.indexes.targetSet]
 
     ' Apply clipping rect to discard flashing cards ' TODO: Check logic taking into accound variable card size
-    x = 0
-    y = 0
-    ' width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
-    ' height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
-    ' m.top.clippingRect = [x, y, width, height]
+    x = m.top.verticalList ? m.minTransPos : m.minPos
+    y = m.top.verticalList ? m.minPos : m.minTransPos
+    width = m.top.verticalList ? m.maxTransPos - m.minTransPos : m.maxPos - m.minPos
+    height = m.top.verticalList ? m.maxPos - m.minPos : m.maxTransPos - m.minTransPos
+    m.top.clippingRect = [x, y, width, height]
 
     ' Update settings
     updateSettings()
@@ -172,6 +177,7 @@ function generateTargetSet(focusIndex as integer) as object
     end if
 
     for i = 0 to numRects - 1
+        ' Define targetRect
         rects[i] = [
             x,
             y,
@@ -181,6 +187,22 @@ function generateTargetSet(focusIndex as integer) as object
 
         rects[i][isVertical ? 0 : 1] += (i = focusIndex) ? offset : 0
 
+        ' Get minimum rectangle location and dimension
+        if i = 1
+            value = isVertical ? y : x
+            m.minPos = value < m.minPos ? value : m.minPos
+        else if i = numRects - 2
+            value = isVertical ? y + rects[i][3] : x + rects[i][2]
+            m.maxPos = value > m.maxPos ? value : m.maxPos
+        end if
+
+        value = isVertical ? x : y
+        m.minTransPos = value < m.minTransPos ? value : m.minTransPos
+
+        value = isVertical ? x + rects[i][2] : y + rects[i][3]
+        m.maxTransPos = value > m.maxTransPos ? value : m.maxTransPos
+
+        ' Prepare for next rectangle
         if isVertical
             y = y + rects[i][3] + spacing
         else

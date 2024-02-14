@@ -169,7 +169,16 @@ end function
 sub onConfigItemChange(event as object)
     configItem = event.getRoSGNode()
 
-    m.settings[configItem.key] = configItem.value
+    if TypeValidation.isStringNotEmpty(configItem.route)
+        route = (configItem.route ?? "").split(".")
+
+        m.settings = setValueWithRoute(configItem.value, m.settings, route)
+
+    else
+        m.settings[configItem.key] = configItem.value
+
+    end if
+
 end sub
 
 function getValueWithRoute(settings as object, items as object) as object
@@ -195,6 +204,31 @@ function getValueWithRoute(settings as object, items as object) as object
     end if
 
     return invalid
+end function
+
+function setValueWithRoute(value as dynamic, settings as object, items as object)
+    item = items.shift() ?? ""
+
+    if TypeValidation.isStringNotEmpty(item)
+        if TypeValidation.validateType(settings[item], ValueTypes.assArray)
+            settings[item] = setValueWithRoute(value, settings[item], items)
+
+        else if TypeValidation.validateType(settings[item], ValueTypes.array)
+            index = (items?[1] ?? "0").toInt()
+
+            if settings[item].count() > index
+                settings[item][index] = value
+            else
+                settings[item].push(value)
+            end if
+
+        else
+            settings[item] = value
+
+        end if
+    end if
+
+    return settings
 end function
 
 sub onKeyEvent(key as string, press as boolean) as boolean

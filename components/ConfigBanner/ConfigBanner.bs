@@ -58,6 +58,15 @@ sub createItem(config)
         value : m.settings[config.key]
     }
 
+    if TypeValidation.isStringNotEmpty(config.value.route)
+        route = (config.value.route ?? "").split(".")
+
+        settings.append({
+            route : config.value.route
+            value : getValueWithRoute(m.settings, route)
+        })
+    end if
+
     if config.value.type = Types.num
         settings.subtype = config.value.subtype
     end if
@@ -130,6 +139,19 @@ function getConfigs() as object
             label : "Vertical List"
             type : Types.check
         }
+        focusWidth : {
+            label : "Focused width"
+            type : Types.num
+            subType : SubTypes.int
+            route : "variableCardSize.width.0"
+        }
+        focusHeigth : {
+            label : "Focused height"
+            type : Types.num
+            subType : SubTypes.int
+            route : "variableCardSize.height.0"
+        }
+        ' TODO: scale method for variable size
         ' TODO: focusColor
         focusThickness : {
             label : "Focus Thickness"
@@ -149,6 +171,31 @@ sub onConfigItemChange(event as object)
 
     m.settings[configItem.key] = configItem.value
 end sub
+
+function getValueWithRoute(settings as object, items as object) as object
+    item = items.shift() ?? ""
+
+    if TypeValidation.isStringNotEmpty(item)
+        if TypeValidation.validateType(settings[item], ValueTypes.assArray)
+            return getValueWithRoute(settings[item], items)
+
+        else if TypeValidation.validateType(settings[item], ValueTypes.array)
+            index = (items?[1] ?? "0").toInt()
+
+            if settings[item]?[index] <> invalid
+                return settings[item][index]
+            else
+                return invalid
+            end if
+
+        else
+            return settings[item]
+
+        end if
+    end if
+
+    return invalid
+end function
 
 sub onKeyEvent(key as string, press as boolean) as boolean
     if not press then return false

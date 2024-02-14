@@ -1,0 +1,31 @@
+enum ValueTypes
+    string = "string"
+    array = "array"
+    assArray = "assocArray"
+end enum
+
+namespace TypeValidation
+
+    function getTypeInterfaces()
+        return {
+            "string" : "ifString"
+            "array" : "ifArray"
+            "assocArray" : "ifAssociativeArray"
+        }
+    end function
+
+    function validateType(value as dynamic, valueType as string)
+        if value = invalid then return false
+
+        return GetInterface(value, getTypeInterfaces()[valueType] ?? "") <> invalid ? true : false
+    end function
+
+    function isStringNotEmpty(value as dynamic)
+        return validateType(value, ValueTypes.string) and not value.IsEmpty() ? true : false
+    end function
+
+    function isArrayNotEmpty(value as dynamic)
+        return validateType(value, ValueTypes.array) and value.count() > 0 ? true : false
+    end function
+
+end namespace

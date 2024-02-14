@@ -4,6 +4,7 @@
 
 <component name="ConfigBanner" extends="Group">
     <script type="text/brightscript" uri="ConfigBanner.bs" />
+    <script type="text/brightscript" uri="pkg:/source/utils.bs" />
 
     <interface>
         <field id="settings" type="assocArray" />

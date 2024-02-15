@@ -61,10 +61,18 @@ sub setVariables()
         key : ""
     }
 
+    ' TODO: Move these variables to an object
     m.minPos = 0
     m.maxPos = 0
     m.minTransPos = 0
     m.maxTransPos = 0
+
+    m.focusAnimValues = {
+        width : 0
+        height : 0
+        diffWidth : 0
+        diffHeigth : 0
+    }
 end sub
 
 sub setObservers()
@@ -217,8 +225,13 @@ function generateTargetSet(focusIndex as integer) as object
 end function
 
 sub configureFocusObject()
+    targetSet = m.sets[m.indexes.targetSet]
+
+    index = targetSet.focusIndex
+    rect = targetSet.targetRects[index]
+
     m.focus.settings = {
-        width : m.top.cardWidth, height : m.top.cardHeight, color : m.top.focusColor,
+        width : rect.width, height : rect.height, color : m.top.focusColor,
         thickness : m.top.focusThickness, cornerRadius : m.top.focusCornerRadius
     }
 end sub
@@ -306,11 +319,32 @@ sub animateFocus(animate=true as boolean)
     targetTranslation = [rect.x, rect.y]
 
     if animate
+        configureFocusAnimation(rect)
+
         m.focusAnimInterp.keyValue = [m.focus.translation, targetTranslation]
         m.focusAnimation.control = "start"
     else
         m.focus.translation = targetTranslation
     end if
+end sub
+
+sub configureFocusAnimation(rect as object)
+    m.focusAnimInterp.unObservefield("fraction")
+
+    m.focusAnimValues.width = m.focus.width
+    m.focusAnimValues.height = m.focus.height
+
+    m.focusAnimValues.diffWidth = rect.width - m.focus.width
+    m.focusAnimValues.diffHeigth = rect.height - m.focus.height
+
+    m.focusAnimInterp.observefield("fraction", "onAnimationFractionChange")
+end sub
+
+sub onAnimationFractionChange(event as object)
+    fraction = event.getData()
+
+    m.focus.width = m.focusAnimValues.width + m.focusAnimValues.diffWidth * fraction
+    m.focus.height = m.focusAnimValues.height + m.focusAnimValues.diffHeigth * fraction
 end sub
 
 sub onItemFocusedChange()

@@ -13,7 +13,7 @@ sub initialSetup()
         wrap : true
         duration : 0.3
         showTargetRects : true
-        usePlainStyle : false
+        usePlainStyle : true
         fixedFocus : false
         enableAnimation : true
         numRects : 0
@@ -22,6 +22,11 @@ sub initialSetup()
         cardWidth : 0
         cardHeight : 0
         cardSpacing : 0
+        variableCardSize : {
+            width : [0]
+            height : [0]
+            method : "" ' It could be size or factor
+        }
         verticalList : false
         advanceKey : "right"
         reverseKey : "left"
@@ -55,6 +60,19 @@ sub setVariables()
         press : false
         key : ""
     }
+
+    ' TODO: Move these variables to an object
+    m.minPos = 0
+    m.maxPos = 0
+    m.minTransPos = 0
+    m.maxTransPos = 0
+
+    m.focusAnimValues = {
+        width : 0
+        height : 0
+        diffWidth : 0
+        diffHeigth : 0
+    }
 end sub
 
 sub setObservers()
@@ -87,11 +105,11 @@ sub configureComponent(event as object)
     setupRects()
     m.top.targetSet = m.sets[m.indexes.targetSet]
 
-    ' Apply clipping rect to discard flashing cards
-    x = 0
-    y = 0
-    width = m.top.verticalList ? m.top.cardWidth : (m.top.cardWidth + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing
-    height = m.top.verticalList ? (m.top.cardHeight + m.top.cardSpacing) * m.top.numRects - m.top.cardSpacing : m.top.cardHeight
+    ' Apply clipping rect to discard flashing cards ' TODO: Check logic taking into accound variable card size
+    x = m.top.verticalList ? m.minTransPos : m.minPos
+    y = m.top.verticalList ? m.minPos : m.minTransPos
+    width = m.top.verticalList ? m.maxTransPos - m.minTransPos : m.maxPos - m.minPos
+    height = m.top.verticalList ? m.maxPos - m.minPos : m.maxTransPos - m.minTransPos
     m.top.clippingRect = [x, y, width, height]
 
     ' Update settings
@@ -150,11 +168,24 @@ function generateTargetSet(focusIndex as integer) as object
     spacing = m.top.cardSpacing
     x = isVertical ? 0 : -(width + spacing)
     y = isVertical ? -(height + spacing) : 0
-    offset = m.top.usePlainStyle ? 0 : 5
-    widthOffset = m.top.usePlainStyle ? 0 : 20
-    heightOffset = m.top.usePlainStyle ? 0 : 10
+
+    offset = m.top.usePlainStyle ? 0 : 0 ' TODO: Add offset
+
+    widthOffset = 0
+    heightOffset = 0
+    if not m.top.usePlainStyle
+        variableCardSize = m.top.variableCardSize
+        if variableCardSize.method = "factor"
+            widthOffset = (variableCardSize.width[0] - 1) * width
+            heightOffset = (variableCardSize.height[0] - 1) * height
+        else if variableCardSize.method = "size"
+            widthOffset = variableCardSize.width[0] - width
+            heightOffset = variableCardSize.height[0] - height
+        end if
+    end if
 
     for i = 0 to numRects - 1
+        ' Define targetRect
         rects[i] = [
             x,
             y,
@@ -164,10 +195,26 @@ function generateTargetSet(focusIndex as integer) as object
 
         rects[i][isVertical ? 0 : 1] += (i = focusIndex) ? offset : 0
 
+        ' Get minimum rectangle location and dimension
+        if i = 1
+            value = isVertical ? y : x
+            m.minPos = value < m.minPos ? value : m.minPos
+        else if i = numRects - 2
+            value = isVertical ? y + rects[i][3] : x + rects[i][2]
+            m.maxPos = value > m.maxPos ? value : m.maxPos
+        end if
+
+        value = isVertical ? x : y
+        m.minTransPos = value < m.minTransPos ? value : m.minTransPos
+
+        value = isVertical ? x + rects[i][2] : y + rects[i][3]
+        m.maxTransPos = value > m.maxTransPos ? value : m.maxTransPos
+
+        ' Prepare for next rectangle
         if isVertical
-            y = y + height + spacing
+            y = y + rects[i][3] + spacing
         else
-            x = x + width + spacing
+            x = x + rects[i][2] + spacing
         end if
     end for
 
@@ -178,8 +225,13 @@ function generateTargetSet(focusIndex as integer) as object
 end function
 
 sub configureFocusObject()
+    targetSet = m.sets[m.indexes.targetSet]
+
+    index = targetSet.focusIndex
+    rect = targetSet.targetRects[index]
+
     m.focus.settings = {
-        width : m.top.cardWidth, height : m.top.cardHeight, color : m.top.focusColor,
+        width : rect.width, height : rect.height, color : m.top.focusColor,
         thickness : m.top.focusThickness, cornerRadius : m.top.focusCornerRadius
     }
 end sub
@@ -267,11 +319,32 @@ sub animateFocus(animate=true as boolean)
     targetTranslation = [rect.x, rect.y]
 
     if animate
+        configureFocusAnimation(rect)
+
         m.focusAnimInterp.keyValue = [m.focus.translation, targetTranslation]
         m.focusAnimation.control = "start"
     else
         m.focus.translation = targetTranslation
     end if
+end sub
+
+sub configureFocusAnimation(rect as object)
+    m.focusAnimInterp.unObservefield("fraction")
+
+    m.focusAnimValues.width = m.focus.width
+    m.focusAnimValues.height = m.focus.height
+
+    m.focusAnimValues.diffWidth = rect.width - m.focus.width
+    m.focusAnimValues.diffHeigth = rect.height - m.focus.height
+
+    m.focusAnimInterp.observefield("fraction", "onAnimationFractionChange")
+end sub
+
+sub onAnimationFractionChange(event as object)
+    fraction = event.getData()
+
+    m.focus.width = m.focusAnimValues.width + m.focusAnimValues.diffWidth * fraction
+    m.focus.height = m.focusAnimValues.height + m.focusAnimValues.diffHeigth * fraction
 end sub
 
 sub onItemFocusedChange()

@@ -31,17 +31,22 @@ end sub
 
 function getInitialListConfig() as object
     settings = {
-        itemComponentName : "SimpleListItem"
+        itemComponentName : "BaseListItem"
         wrap : true
         duration : 0.3
         showTargetRects : true
-        usePlainStyle : true
+        usePlainStyle : false
         numRects : 8
         minFocused : 2
         maxFocused : 5
         cardWidth : 120
         cardHeight : 240
         cardSpacing : 40
+        variableCardSize : {
+            width : [150]
+            height : [300]
+            method : "size"
+        }
         verticalList : false
         focusColor : "FFFF00"
         focusThickness : 3

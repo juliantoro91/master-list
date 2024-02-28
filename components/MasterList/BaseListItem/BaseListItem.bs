@@ -1,0 +1,49 @@
+sub init()
+    m.background = m.top.findNode("background")
+    m.label = m.top.findNode("label")
+end sub
+
+sub onContentSet(event as object)
+    content = event.getData()
+
+    m.label.text = content.title
+
+    calculateCardSize()
+
+    m.background.width = m.cardSize.width
+    m.background.height = m.cardSize.height
+end sub
+
+sub onItemHasFocus(event as object)
+    hasFocus = event.getData()
+end sub
+
+sub onFocusPercentChange(event as object)
+    focusPercent = event.getData()
+
+    m.background.width = m.cardSize.width + m.cardSize.diffWidth * focusPercent
+    m.background.height = m.cardSize.height + m.cardSize.diffHeight * focusPercent
+end sub
+
+sub calculateCardSize()
+    settings = m.top.getParent().settings ?? {}
+
+    cardWidth = settings.cardWidth ?? 0
+    cardHeight = settings.cardHeight ?? 0
+    variableCardSize = settings.variableCardSize ?? {}
+
+    if variableCardSize.method = "factor"
+        focusedWidth = (variableCardSize?.width?[0] ?? 1) * cardWidth
+        focusedHeight = (variableCardSize?.height?[0] ?? 1) * cardHeight
+    else
+        focusedWidth = variableCardSize?.width?[0] ?? cardWidth
+        focusedHeight = variableCardSize?.height?[0] ?? cardHeight
+    end if
+
+    m.cardSize = {
+        width : cardWidth
+        height : cardHeight
+        diffWidth : focusedWidth - cardWidth
+        diffHeight : focusedHeight - cardHeight
+    }
+end sub
